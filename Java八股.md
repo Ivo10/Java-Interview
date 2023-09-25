@@ -13,7 +13,7 @@ System.out.println(a.equals(b)); //false
 
 原因：Integer用到了享元模式的设计，它针对与[-128, 127]的数字做了缓存。使用`Integer a = 100`进行赋值操作时，它默认使用`valueOf`进行自动装箱，从而触发了缓存机制，使得`a`和`b`指向了相同的内存地址。
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925210521896.png" alt="image-20230925210521896" style="zoom: 67%;" />
+<img src="./assets/image-20230925210521896.png" style="zoom:67%;" />
 
 
 
@@ -52,7 +52,7 @@ public class TestChinese {
 }
 ```
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925171652123.png" alt="image-20230925171652123" style="zoom:67%;" />
+<img src="./assets/image-20230925171652123.png" alt="image-20230925171652123" style="zoom:67%;" />
 
 # JVM
 
@@ -67,11 +67,11 @@ Java Virtual Machine：Java程序的运行环境（Java二进制字节码的运�
 - 一次编写，到处运行
 - 自动内存管理，垃圾回收机制
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925194315368.png" alt="image-20230925194315368" style="zoom: 50%;" />
+<img src="./assets/image-20230925194315368.png" alt="image-20230925194315368" style="zoom: 50%;" />
 
 ### JVM由哪几部分组成？运行流程是什么？
 
-![image-20230925194507567](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925194507567.png)
+![image-20230925194507567](./assets/image-20230925194507567.png)
 
 **类加载机制**：类的数据从Class文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的Java类型（《深入理解JVM》）
 
@@ -134,7 +134,7 @@ int j = i++ + ++i;
 - 分代的唯一理由是**优化GC性能**；
 - 分代将新创建的对象放到某一地方，当GC的时候就会先把这部分“朝生夕死”的对象区域进行垃圾回收。
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925111911867.png" alt="image-20230925111911867" style="zoom: 67%;" />
+<img src="./assets/image-20230925111911867.png" alt="image-20230925111911867" style="zoom: 67%;" />
 
 ### 解释一下方法区？
 
@@ -151,11 +151,11 @@ int j = i++ + ++i;
 | jdk1.7       | 有永久代，但已经逐步“去永久代”，字符串常量池、静态变量移除，保存在堆中 |
 | jdk1.8及以后 | 无永久代，类型信息、字段、方法、常量保存在本地内存元空间中，但字符串常量池、静态变量仍在堆 |
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925191604365.png" alt="image-20230925191604365" style="zoom:50%;" />
+<img src="./assets/image-20230925191604365.png" alt="image-20230925191604365" style="zoom:50%;" />
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925191629614.png" alt="image-20230925191629614" style="zoom: 50%;" />
+<img src="./assets/image-20230925191629614.png" alt="image-20230925191629614" style="zoom: 50%;" />
 
-<img src="C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925191655309.png" alt="image-20230925191655309" style="zoom:50%;" />
+<img src="./assets/image-20230925191655309.png" alt="image-20230925191655309" style="zoom:50%;" />
 
 ### 为什么要用元空间代替永久代？
 
@@ -172,7 +172,7 @@ int j = i++ + ++i;
 - **常量池**：可以看作是一张表，虚拟机指令根据这张表找到要执行的类名、方法名、参数类型、字面量等信息；
 - 当类被加载，它的常量池信息就会放入**运行时常量池**，并把里面的符号地址变为真实地址。
 
-![image-20230925204815190](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20230925204815190.png)
+![image-20230925204815190](./assets/image-20230925204815190.png)
 
 ## 垃圾回收
 
