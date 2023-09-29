@@ -194,3 +194,128 @@ GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）
   - Major GC后内存还不足，就OOM了。
 
 - **Full GC**
+
+# 多线程
+
+### 创建多线程的方式及其优缺点？
+
+1. 继承`Thread`类
+
+   `MyThread`类：
+
+   ```java 
+   public class MyThread extends Thread{
+       @Override
+       public void run() {
+           for (int i = 0; i < 10; i++) {
+               int random = (int) (Math.random() * 1000);
+               try {
+                   Thread.sleep(random);
+               } catch (InterruptedException e) {
+                   e.printStackTrace();
+               }
+               System.out.println("run" + Thread.currentThread().getName());
+           }
+       }
+   }
+   ```
+
+   `Test`类：
+
+   ```java
+   public class Test {
+       public static void main(String[] args) {
+           MyThread myThread = new MyThread();
+           myThread.setName("myThread");
+           myThread.start();
+           for (int i = 0; i < 10; i++) {
+               int random = (int) Math.random();
+               try {
+                   Thread.sleep(1000);
+               } catch (InterruptedException e) {
+                   e.printStackTrace();
+               }
+               System.out.println("run=" + Thread.currentThread().getName());
+           }
+       }
+   }
+   ```
+
+2. 实现`Runnable`接口
+
+   `MyRunnable`类：
+
+   ```java
+   public class MyRunnable implements Runnable{
+       @Override
+       public void run() {
+           System.out.println("运行中!");
+       }
+   }
+   ```
+
+   `Test`类：
+
+   ```java
+   public class Test {
+       public static void main(String[] args) {
+           MyRunnable myRunnable = new MyRunnable();
+           Thread thread = new Thread(myRunnable);
+           thread.start();
+           System.out.println("运行结束!");
+       }
+   }
+   ```
+
+   继承`Thread`类的**局限性**：**Java不支持多继承**
+
+### 分析下列程序执行结果
+
+```java
+public class MyThread extends Thread {
+   public MyThread() {
+       System.out.println("MyThread---begin");
+       System.out.println("Thread.currentThread().getName(): "
+               + Thread.currentThread().getName());
+       System.out.println("this.getName(): " + this.getName());
+       System.out.println("MyThread---end");
+   }
+
+    @Override
+    public void run() {
+        System.out.println("MyThread---begin");
+        System.out.println("Thread.currentThread().getName(): "
+                + Thread.currentThread().getName());
+        System.out.println("this.getName(): " + this.getName());
+        System.out.println("MyThread---end");
+    }
+}
+```
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        MyThread myThread = new MyThread();
+        Thread thread = new Thread(myThread);
+        thread.setName("A");
+        thread.start();
+    }
+}
+```
+
+**运行结果：**
+
+```
+MyThread---begin
+Thread.currentThread().getName(): main
+this.getName(): Thread-0
+MyThread---end
+MyThread---begin
+Thread.currentThread().getName(): A
+this.getName(): Thread-0
+MyThread---end
+```
+
+重点理解`Thread`类中的`run()`方法的调用：
+
+<img src="./assets/Snipaste_2023-09-29_22-26-46.png" style="zoom: 67%;" />
