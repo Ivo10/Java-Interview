@@ -111,8 +111,8 @@ JVM的字节码解释器就需要通过改变PC寄存器的值来明确下一条
 
 Java虚拟机规范允许Java栈的大小时动态的或者时固定不变的
 
-- 如果用**固定大小**的Java虚拟机栈，那每一个线程的Java虚拟机栈容量可以在线程创建的时候独立选定。如果线程请求分配的栈容量超过Java虚拟机栈允许的最大容量，Java虚拟机就会抛出一个`StackOverflowError`异常
-- 如果Java虚拟机栈**可以动态扩展**，并且在尝试扩展的时候无法申请到足够的内存，或者在创建新的线程时没有足够的内存去创建对应的虚拟机栈，那Java虚拟机将会抛出一个`OutofMemoryError`异常
+- 如果用**固定大小**的Java虚拟机栈，那每一个线程的Java虚拟机栈容量可以在线程创建的时候独立选定。如果线程请求分配的栈容量超过Java虚拟机栈允许的最大容量，Java虚拟机就会抛出一个**`StackOverflowError`**异常
+- 如果Java虚拟机栈**可以动态扩展**，并且在尝试扩展的时候无法申请到足够的内存，或者在创建新的线程时没有足够的内存去创建对应的虚拟机栈，那Java虚拟机将会抛出一个**`OutofMemoryError`**异常
 
 ### 方法内的局部变量是否线程安全？
 
@@ -176,6 +176,48 @@ int j = i++ + ++i;
 
 ## 垃圾回收
 
+### 对象什么时候被垃圾回收？
+
+如果一个或多个对象没有任何引用指向它了，那么这个对象现在就是垃圾。如果定位了垃圾，则有可能会被垃圾回收器回收。
+
+定位垃圾的方式有两种：
+
+- 引用计数法
+- 可达性分析算法
+
+### 引用计数法的优缺点
+
+**优点**：实现简单，垃圾对象便于辨识；判定效率高，回收没有延迟性
+
+**缺点**
+
+- 需要单独的字段存储计数器，增加了存储空间开销
+- 每次复制需要更新计数器，增加了时间开销
+- **无法处理循环引用的情况**
+
+<img src="./assets/Snipaste_2023-10-08_16-38-40.png" style="zoom: 67%;" />
+
+### GC Roots有哪些？
+
+- 虚拟机栈（栈帧中的本地变量表）中引用的对象
+- 方法区中类静态属性引用的对象
+  - 如Java类的引用类型静态变量
+- 方法区中常量引用的对象
+  - 如字符串常量池里的引用
+- 本地方法栈中JNI引用的对象
+
+<img src="./assets/Snipaste_2023-10-08_16-43-03.png" style="zoom:67%;" />
+
+### 对象的finalization机制
+
+`finalize()`方法是`Object`类提供的方法。在GC准备释放对象所占用的内存空间之前，它将首先调用`finalize()`方法（也可能不调用）
+
+1. 如果对象`objA`到GC Roots没有引用链，则进行**第一次标记**；
+2. 进行筛选，判断`objA`有无必要执行`finalize()`方法：
+   - `objA`没有重写`finalize()`或`finalize()`已经被虚拟机调用过，则虚拟机视为“没有必要执行”；
+   - 如果对象重写了`finalize()`方法且未被执行过，那么`objA`会被插入到`F-Queue`队列中，由一个虚拟机自动创建的、低优先级的`Finalizer`线程触发其`finalize()`方法执行；
+   - 稍后GC会对F-Queue队列中的对象进行**第二次标记**，判断其是否进行回收（是否逃脱死亡成功，略）。`finalize()`不会被再次调用了。
+
 ### 解释Minor GC、Major GC、Full GC
 
 GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）和**整堆收集**（Full GC）
@@ -183,7 +225,7 @@ GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）
 部分收集
 
 - **新生代收集**（Minor GC / Young GC）
-  - 年轻代中的Eden代满，会触发Minor GC；
+  - 年轻代中的Eden代满，会触发Minor GC；这里的年轻代满指的是Eden代满，Survivor满不会引发GC；
   - 由于Java对象大多都具备**朝生夕灭**的特性，故Minor GC回收速度快，较频繁；
   - Minor GC会引发STW，暂停其他用户线程；垃圾回收结束，用户线程恢复。
 - **老年代收集**（Major GC / Old GC）
@@ -408,6 +450,117 @@ MyThread---end
    - `NEW`、`TERMINATED`和操作系统层面的相似；
    - `RUNNABLE`为调用了`start()`方法后，该状态涵盖了操作系统层面的**可运行状态**、**运行状态**、**阻塞状态**；
    - `BLOCKED`、`WATING`、`TIMED_WAITING`是Java API层面对**阻塞状态**的细分。
+
+### 线程安全的三个方面
+
+1. **原子性**：互斥访问，同一个时刻只能有一个线程来对它进行操作
+
+   ```java
+   public class Test {
+       private static int i = 0;
+       private static Object obj = new Object();
+   
+       public static void main(String[] args) throws InterruptedException {
+           Thread t1 = new Thread(() -> {
+               synchronized (obj) {
+                   for (int j = 0; j < 5000; j++) {
+                       i++;
+                   }
+               }
+           }, "t1");
+           Thread t2 = new Thread(() -> {
+               synchronized (obj) {
+                   for (int j = 0; j < 5000; j++) {
+                       i--;
+                   }
+               }
+           }, "t2");
+           t1.start();
+           t2.start();
+           t1.join();
+           t2.join();
+           System.out.println(i);
+       }
+   }
+   ```
+
+2. **可见性**：一个线程对主内存的修改可以及时的被其他线程观察到
+
+   ```java
+   public class Test {
+       private static volatile boolean run = true;
+   
+       public static void main(String[] args) throws InterruptedException {
+           new Thread(() -> {
+               while (run) {
+   
+               }
+           },"t1").start();
+           Thread.sleep(1000);
+           run = false;
+       }
+   }
+   ```
+
+3. **有序性**：一个线程观察其他线程中指令执行顺序，由于指令重排序存在，观察结果一般杂乱无序
+
+   ```java
+   int num = 0;
+   boolean ready = false;
+   
+   // 线程1：执行此方法
+   public void actor1(I_Result r) {
+       if (ready) {
+           r.r1 = num + num;
+       } else {
+           r.r1 = 1;
+       }
+   }
+   
+   // 线程2：执行此方法
+   public void actor2(I_Result r) {
+       num = 2;
+       ready = true;
+   }
+   ```
+
+   可能的结果：1，4，**0（重排）**
+
+   解决办法：`volatile`修饰的变量，可以禁用指令重排（`volatile boolean ready = true`）
+
+### volatile关键字
+
+1. **保证内存可见性**
+
+   可见性是指线程之间的可见性，⼀个线程修改的状态对另⼀个线程是可见的。也就是⼀个线程修改的结果，另⼀个线程马上就能看到；
+
+   实现原理：
+
+   - 当对⾮`volatile`变量进⾏读写的时候，每个线程先从主内存拷贝变量到CPU缓存中，如果计算机有多个CPU， 每个线程可能在不同的CPU上被处理，这意味着每个线程可以拷贝到不同的CPU cache中；
+   - `volatile`变量不会被缓存在寄存器或者对其他处理器不可见的地⽅，保证了每次读写变量都从主内存中读，跳 过CPU cache这⼀步。当⼀个线程修改了这个变量的值，新值对于其他线程是⽴即得知的。 
+
+   ```java
+   public class Test {
+       private static volatile boolean run = true;
+   
+       public static void main(String[] args) throws InterruptedException {
+           new Thread(() -> {
+               while (run) {
+                   
+               }
+           },"t1").start();
+           Thread.sleep(1000);
+           run = false;
+       }
+   }
+   ```
+
+2. **禁止指令重排**
+
+3. 与`synchronized`对比：
+
+   - volatile可以保证数据的可见性，但不能保证原子性；
+   - synchronized可以保证原子性，也可以间接保证可见性，因为它会将私有内存和公共内存中的数据做同步
 
 ## 并发编程——模式
 
