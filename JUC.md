@@ -12,14 +12,14 @@
 - 把CPU运行时间划分成若干个时间段，再将时间段分配给各个线程执行。在一个时间段的线程代码运行时，其它线程处于挂起等待状态。
 - 这些线程**微观上**都是被顺序执行的，只是由于每个线程分配的时间段特别短，线程执行的切换速度非常快，在**宏观上**看起来他们像是被同时执行的。
 
-<img src="D:\资料\Java八股\assets\Snipaste_2023-10-16_17-09-59.png" style="zoom: 67%;" />
+<img src="./assets/Snipaste_2023-10-16_17-09-59.png" style="zoom: 67%;" />
 
 **并行**
 
 - 并行是指两个或者多个任务在**同一时间点**发生
 - 当一个CPU执行一个线程时，另一个CPU可以执行另一个线程，两个线程互不抢占CPU资源，可以同时进行。并行是真正的同时执行。
 
-<img src="D:\资料\Java八股\assets\Snipaste_2023-10-16_17-12-02.png" style="zoom:67%;" />
+<img src="./assets/Snipaste_2023-10-16_17-12-02.png" style="zoom:67%;" />
 
 ### 进程、线程和管程
 
@@ -173,17 +173,17 @@ MyThread---end
 
 重点理解`Thread`类中的`run()`方法的调用：
 
-<img src="D:\资料\Java八股\assets\Snipaste_2023-09-29_22-26-46.png" style="zoom: 67%;" />
+<img src="./assets/Snipaste_2023-09-29_22-26-46.png" style="zoom: 67%;" />
 
 ### 线程中操作系统层面的5种状态和Java API层面的6种状态
 
 1. **操作系统层面**
 
-   <img src="D:\资料\Java八股\assets\Snipaste_2023-10-01_16-07-34.png" style="zoom:50%;" />
+   <img src="./assets/Snipaste_2023-10-01_16-07-34.png" style="zoom:50%;" />
 
 2. **Java API层面**
 
-   <img src="D:\资料\Java八股\assets\Snipaste_2023-10-01_16-08-37.png" style="zoom:50%;" />
+   <img src="./assets/Snipaste_2023-10-01_16-08-37.png" style="zoom:50%;" />
 
    - `NEW`、`TERMINATED`和操作系统层面的相似；
    - `RUNNABLE`为调用了`start()`方法后，该状态涵盖了操作系统层面的**可运行状态**、**运行状态**、**阻塞状态**；
@@ -304,7 +304,7 @@ MyThread---end
 
 ### 两阶段终止模式
 
-<img src="D:\资料\Java八股\assets\Snipaste_2023-10-06_10-13-33.png" style="zoom:50%;" />
+<img src="./assets/Snipaste_2023-10-06_10-13-33.png" style="zoom:50%;" />
 
 代码实现：
 
@@ -345,6 +345,6 @@ class TwoPhaseTermination {
 
 不加`current.interrupt()`的**运行结果**：
 
-<img src="D:\资料\Java八股\assets\Snipaste_2023-10-06_10-17-39.png" style="zoom:50%;" />
+<img src="./assets/Snipaste_2023-10-06_10-17-39.png" style="zoom:50%;" />
 
 仅抛出异常，但由于没有重新设置打断标记，故没有终止。
