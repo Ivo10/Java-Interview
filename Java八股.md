@@ -61,9 +61,34 @@ public class TestChinese {
 #### 为什么JDK9要将String的底层实现由char[]改为byte[]?
 
 - 节省内存空间：byte占一个字节，char占用两个字节；
-
 - 如果一个字符串只包含英文字符或者ASCII字符，那么只用一个字节就可以表示所有字符；
 - 将`char[]`改为`byte[] + encoding flag field`
+
+## 反射
+
+### 谈一谈对Class类的理解
+
+- 针对于编写好的`.java`源文件进行编译（`javac.exe`），会生成一个或多个`.class`字节码文件；
+- 接着，我们使用`java.exe`命令对指定的`.class`文件进行解释运行，在解释运行过程中，我们需要将`.class`字节码文件**加载**到内存中。加载到内存中的`.class`文件对应的结构即为`Class`的一个实例（类的加载过程见JVM篇）。
+
+### 获取Class实例的四种方式
+
+1. ```java
+   Class<String> stringClass = String.class;
+   ```
+
+2. ```java
+   Class<?> stringClass = Class.forName("java.lang.String");
+   ```
+
+3. ```java
+   String s = "hello";
+   Class<? extends String> stringClass3 = s.getClass();
+   ```
+
+4. ```java
+   Class<?> testClass = ClassLoader.getSystemClassLoader().loadClass("jvm.Test"); // s
+   ```
 
 # JVM
 
@@ -190,21 +215,22 @@ HotSpot虚拟机中方法区的演进：
 
 ### 介绍一下运行时常量池
 
-- **常量池**：可以看作是一张表，虚拟机指令根据这张表找到要执行的类名、方法名、参数类型、字面量等信息；
-- 当类被加载，它的常量池信息就会放入**运行时常量池**，并把里面的符号地址变为真实地址。
+- **常量池**：可以看作是一张表，虚拟机指令根据这张表找到要执行的类名、方法名、参数类型、字面量等信息（Class文件的资源仓库）；
+- 当类被加载，它的常量池信息就会放入**运行时常量池**，并把里面的符号地址变为真实地址；
+- 常量池中主要存放两大类常量：**字面量**和**符号引用**。
 
 ![image-20230925204815190](./assets/image-20230925204815190.png)
 
 ### 介绍Java类实例化的过程
 
-1. **判断对象对应的类是否加载、连接、初始化**
-   - 虚拟机遇到一条`new`指令，首先去检查这个指令的参数能否在`Metaspace`的常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已经被加载、解析和初始化（即判断类元信息是否存在）。如果没有，那么在双亲委派模式下，使用当前类加载器以`ClassLoader+包名+类名`为Key进行查找对应的`.class `文件。如果没有找到文件，则抛出`ClassNotFoundException`异常；如果找到，则进行类加载，并生成对应的`Class`类对象。
+1. **类加载检查**
+   - 虚拟机遇到一条`new`指令时，首先将去检查这个指令的参数是否能在常量池中定位到这个类的符号引用，并且检查这个符号引用代表的类是否已被加载过、解析和初始化过。如果没有，那必须先执行相应的类加载过程；
 2. **为对象分配内存**
-   - 如果内存规整——指针碰撞（标记-复制、标记-整理算法）
-   - 如果内存不规整——虚拟机需要维护一个列表，空闲列表分配（标记-清除算法）
+   - 如果内存规整——指针碰撞（标记-复制、标记-整理算法）；
+   - 如果内存不规整——虚拟机需要维护一个列表，空闲列表分配（标记-清除算法）；
 3. **处理并发安全问题**
-4. **初始化分配到的空间**
-   - 所有属性**设置默认值**，保证对象实例字段在不赋值时可以直接使用
+4. **初始化零值**
+   - 所有属性**设置默认值**，保证对象实例字段在不赋值时可以直接使用；
 5. **设置对象的对象头**
    - 将对象的所属类（即类的元数据信息）、对象的HashCode和对象的GC信息、锁信息等数据存储在对象的对象头中。这个过程的具体设置方式取决于JVM实现。
 6. **执行`init`方法进行初始化**
@@ -225,11 +251,11 @@ HotSpot虚拟机对象的对象头部分包含两类信息：
 
 ### 对象的访问定位有哪两种方式？
 
-- 句柄访问
+- **句柄访问**
 
   <img src="./assets/Snipaste_2023-10-12_09-44-16.png" style="zoom:50%;" />
 
-- 直接指针访问（HotSpot默认）
+- **直接指针访问**（HotSpot默认）
 
   <img src="./assets/Snipaste_2023-10-12_09-45-06.png" style="zoom:50%;" />
 
@@ -376,6 +402,12 @@ public void test2() {
 4. 经过一段时间后Eden区内存又出现不足，标记Eden区和to区存活对象，复制到from区；
 5. Survivor区熬过几次回收（最多15次），晋升到老年代（Survivor区内存不足或大对象会提前晋升）。
 
+#### HotSpot虚拟机为什么要将堆空间分为新生代和老年代？
+
+- 根据对象存活周期的不同，将 Java 堆分为新生代和老年代，这样我们就可以根据各个年代的特点选择合适的垃圾收集算法；
+- 比如在新生代中，每次收集都会有大量对象死去，所以可以选择”标记-复制“算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集；
+- 老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集。
+
 ### Minor GC、Major GC、Full GC的区别？
 
 GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）和**整堆收集**（Full GC）
@@ -454,34 +486,145 @@ GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）
 
 ## 类加载子系统
 
+### Class文件结构总结
+
+`.class`文件结构：
+
+```
+ClassFile {
+    u4             magic; //Class 文件的标志
+    u2             minor_version;//Class 的小版本号
+    u2             major_version;//Class 的大版本号
+    u2             constant_pool_count;//常量池的数量
+    cp_info        constant_pool[constant_pool_count-1];//常量池
+    u2             access_flags;//Class 的访问标记
+    u2             this_class;//当前类
+    u2             super_class;//父类
+    u2             interfaces_count;//接口数量
+    u2             interfaces[interfaces_count];//一个类可以实现多个接口
+    u2             fields_count;//字段数量
+    field_info     fields[fields_count];//一个类可以有多个字段
+    u2             methods_count;//方法数量
+    method_info    methods[methods_count];//一个类可以有个多个方法
+    u2             attributes_count;//此类的属性表中的属性数
+    attribute_info attributes[attributes_count];//属性表集合
+}
+
+```
+
+<img src="./assets/Snipaste_2023-10-13_10-55-08.png" style="zoom:80%;" />
+
 ### 什么是类加载器，类加载器有哪些？
 
 1. JVM只会运行二进制文件，类加载器的作用就是**将字节码文件加载到JVM中**，从而让Java程序能够启动起来；
+
 2. 类加载器有哪些？
    - 启动类加载器（BootStrap ClassLoader）：
-     - 使用C/C++语言实现，嵌套在JVM内部；
+     - 使用C/C++语言实现，嵌套在JVM内部，是JVM的一部分；
      - 加载Java的核心库（`<JAVA_HOME>lib`目录）;
      - 不继承自`java.lang.ClassLoader`，没有父加载器；
+     
    - 扩展类加载器（Extension ClassLoader）：
      - 加载`<JAVA_HOME>lib\ext`目录中的类库；
      - 派生于`ClassLoader`类，父加载器为启动类加载器；
+     
    - 应用程序类加载器（AppClassLoader）：
      - 用于加载用户类路径（ClassPath）上所有的类库；
      - 是程序中默认的类加载器；
+     - 父加载器为扩展类加载器，派生于`ClassLoader`类。
+     
    - 自定义类加载器
+   
+     - 为什么要定义自定义类加载器？
+       - 隔离加载类
+       - 修改类的加载方式
+       - 扩展加载源
+       - 防止源码泄漏
+   
+   - 示例代码：
+   
+     ```java
+     public class ClassLoaderTest {
+         public static void main(String[] args) {
+             // 获取系统类加载器
+             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+             System.out.println(systemClassLoader); //sun.misc.Launcher$AppClassLoader@18b4aac2
+     
+             // 获取其上层: 扩展类加载器
+             ClassLoader extClassLoader = systemClassLoader.getParent();
+             System.out.println(extClassLoader); //sun.misc.Launcher$ExtClassLoader@677327b6
+     
+             // 获取不到引导类加载器
+             ClassLoader bootstrapClassLoader = extClassLoader.getParent();
+             System.out.println(bootstrapClassLoader); //null
+     
+             // 自定义类默认使用系统类加载器
+             ClassLoader classLoader = ClassLoaderTest.class.getClassLoader();
+             System.out.println(classLoader); //sun.misc.Launcher$AppClassLoader@18b4aac2
+     
+             // String类使用引导类加载器加载的
+             ClassLoader stringClassLoader = String.class.getClassLoader();
+             System.out.println(stringClassLoader); //null
+         }
+     }
+     ```
 
 ### 什么是双亲委派模型？
 
-- 如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把**这个请求委派给父类加载器去完成**；
-
+- 在类加载的时候，系统会**首先判断当前类是否被加载过**。已经被加载的类会直接返回，否则才会尝试加载（每个父类加载器都会走一遍这个流程）；
+- 如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把**这个请求委派给父类加载器去完成**（调用父类的`loadClass()`方法）；
 - 每一个层次的类加载器都是如此，因此所有的加载请求最终**都应该传送到顶层的启动类加载器中**；
 - 只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会尝试自己去加载。
+
+```java
+protected Class<?> loadClass(String name, boolean resolve)
+    throws ClassNotFoundException
+{
+    synchronized (getClassLoadingLock(name)) {
+        //首先，检查该类是否已经加载过
+        Class c = findLoadedClass(name);
+        if (c == null) {
+            //如果 c 为 null，则说明该类没有被加载过
+            long t0 = System.nanoTime();
+            try {
+                if (parent != null) {
+                    //当父类的加载器不为空，则通过父类的loadClass来加载该类
+                    c = parent.loadClass(name, false);
+                } else {
+                    //当父类的加载器为空，则调用启动类加载器来加载该类
+                    c = findBootstrapClassOrNull(name);
+                }
+            } catch (ClassNotFoundException e) {
+                //非空父类的类加载器无法找到相应的类，则抛出异常
+            }
+
+            if (c == null) {
+                //当父类加载器无法加载时，则调用findClass方法来加载该类
+                //用户可通过覆写该方法，来自定义类加载器
+                long t1 = System.nanoTime();
+                c = findClass(name);
+
+                //用于统计类加载器相关的信息
+                sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                sun.misc.PerfCounter.getFindClasses().increment();
+            }
+        }
+        if (resolve) {
+            //对类进行link操作
+            resolveClass(c);
+        }
+        return c;
+    }
+}
+
+```
 
 <img src="./assets/Snipaste_2023-10-07_20-26-57.png" style="zoom:80%;" />
 
 ### JVM为什么采用双亲委派机制？
 
-- 通过双亲委派机制可以**避免类的重复加载**。当父类已经加载后则无需重复加载，保证唯一性；
+- 通过双亲委派机制可以**避免类的重复加载**。当父类已经加载后则无需重复加载，保证唯一性（比如自己定义一个`java.lang.Object`类，可以保证加载的是JRE里的`Object`类）；
 - 保护程序安全，防止核心API被随意篡改。
 
 ### 说一下类装载的执行过程？
@@ -492,9 +635,10 @@ GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）
 
 查找和导入class文件
 
-- 通过一个类的全限定名来获取定义此类的二进制字节流；
+- 通过一个类的全限定名来获取定义此类的二进制字节流（但没有指明要从哪获取，怎么获取）；
 - 将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构；
-- 在内存中生成一个代表这个类的`java.lang.Class`对象，作为方法区这个类的各种数据的访问入口。
+- 在内存中（堆）生成一个代表这个类的`java.lang.Class`对象，作为方法区这个类的各种数据的访问入口。
+- （加载阶段结束后，Java虚拟机外部的二进制字节流就按照虚拟机所设定的格式存储在**方法区中**。类型数据妥善安置在方法区之后，在内存中实例化一个`java.lang.Class`类的对象（并没有明确规定是在Java堆中，对于HotSpot虚拟机而言，Class对象比较特殊，它虽然是对象，但是存放在方法区里面，作为程序访问方法区中类型数据的外部接口）
 
 #### 验证
 
@@ -525,305 +669,3 @@ GC按照**回收区域**分为两大种类型：**部分收集**（Partial GC）
 
 - 初始化阶段就是执行类构造器`<clinit>()`方法的过程
 - 对类的静态变量，静态代码块执行初始化操作
-
-# 多线程
-
-### 创建多线程的方式及其优缺点？
-
-1. **继承`Thread`类**
-
-   `MyThread`类：
-
-   ```java 
-   public class MyThread extends Thread{
-       @Override
-       public void run() {
-           for (int i = 0; i < 10; i++) {
-               int random = (int) (Math.random() * 1000);
-               try {
-                   Thread.sleep(random);
-               } catch (InterruptedException e) {
-                   e.printStackTrace();
-               }
-               System.out.println("run" + Thread.currentThread().getName());
-           }
-       }
-   }
-   ```
-
-   `Test`类：
-
-   ```java
-   public class Test {
-       public static void main(String[] args) {
-           MyThread myThread = new MyThread();
-           myThread.setName("myThread");
-           myThread.start();
-           for (int i = 0; i < 10; i++) {
-               int random = (int) Math.random();
-               try {
-                   Thread.sleep(1000);
-               } catch (InterruptedException e) {
-                   e.printStackTrace();
-               }
-               System.out.println("run=" + Thread.currentThread().getName());
-           }
-       }
-   }
-   ```
-
-2. **实现`Runnable`接口**
-
-   `MyRunnable`类：
-
-   ```java
-   public class MyRunnable implements Runnable{
-       @Override
-       public void run() {
-           System.out.println("运行中!");
-       }
-   }
-   ```
-
-   `Test`类：
-
-   ```java
-   public class Test {
-       public static void main(String[] args) {
-           MyRunnable myRunnable = new MyRunnable();
-           Thread thread = new Thread(myRunnable);
-           thread.start();
-           System.out.println("运行结束!");
-       }
-   }
-   ```
-
-   实现`Runnable`接口的好处
-   
-   - 避免了单继承的局限性；
-   - 更适合处理有共享资源的情况。
-
-### 分析下列程序执行结果
-
-```java
-public class MyThread extends Thread {
-   public MyThread() {
-       System.out.println("MyThread---begin");
-       System.out.println("Thread.currentThread().getName(): "
-               + Thread.currentThread().getName());
-       System.out.println("this.getName(): " + this.getName());
-       System.out.println("MyThread---end");
-   }
-
-    @Override
-    public void run() {
-        System.out.println("MyThread---begin");
-        System.out.println("Thread.currentThread().getName(): "
-                + Thread.currentThread().getName());
-        System.out.println("this.getName(): " + this.getName());
-        System.out.println("MyThread---end");
-    }
-}
-```
-
-```java
-public class Test {
-    public static void main(String[] args) {
-        MyThread myThread = new MyThread();
-        Thread thread = new Thread(myThread);
-        thread.setName("A");
-        thread.start();
-    }
-}
-```
-
-**运行结果：**
-
-```
-MyThread---begin
-Thread.currentThread().getName(): main
-this.getName(): Thread-0
-MyThread---end
-MyThread---begin
-Thread.currentThread().getName(): A
-this.getName(): Thread-0
-MyThread---end
-```
-
-重点理解`Thread`类中的`run()`方法的调用：
-
-<img src="./assets/Snipaste_2023-09-29_22-26-46.png" style="zoom: 67%;" />
-
-### 线程中操作系统层面的5种状态和Java API层面的6种状态
-
-1. **操作系统层面**
-
-   <img src="./assets/Snipaste_2023-10-01_16-07-34.png" style="zoom:50%;" />
-
-2. **Java API层面**
-
-   <img src="./assets/Snipaste_2023-10-01_16-08-37.png" style="zoom:50%;" />
-
-   - `NEW`、`TERMINATED`和操作系统层面的相似；
-   - `RUNNABLE`为调用了`start()`方法后，该状态涵盖了操作系统层面的**可运行状态**、**运行状态**、**阻塞状态**；
-   - `BLOCKED`、`WATING`、`TIMED_WAITING`是Java API层面对**阻塞状态**的细分。
-
-### 线程安全的三个方面
-
-1. **原子性**：互斥访问，同一个时刻只能有一个线程来对它进行操作
-
-   ```java
-   public class Test {
-       private static int i = 0;
-       private static Object obj = new Object();
-   
-       public static void main(String[] args) throws InterruptedException {
-           Thread t1 = new Thread(() -> {
-               synchronized (obj) {
-                   for (int j = 0; j < 5000; j++) {
-                       i++;
-                   }
-               }
-           }, "t1");
-           Thread t2 = new Thread(() -> {
-               synchronized (obj) {
-                   for (int j = 0; j < 5000; j++) {
-                       i--;
-                   }
-               }
-           }, "t2");
-           t1.start();
-           t2.start();
-           t1.join();
-           t2.join();
-           System.out.println(i);
-       }
-   }
-   ```
-
-2. **可见性**：一个线程对主内存的修改可以及时的被其他线程观察到
-
-   ```java
-   public class Test {
-       private static volatile boolean run = true;
-   
-       public static void main(String[] args) throws InterruptedException {
-           new Thread(() -> {
-               while (run) {
-   
-               }
-           },"t1").start();
-           Thread.sleep(1000);
-           run = false;
-       }
-   }
-   ```
-
-3. **有序性**：一个线程观察其他线程中指令执行顺序，由于指令重排序存在，观察结果一般杂乱无序
-
-   ```java
-   int num = 0;
-   boolean ready = false;
-   
-   // 线程1：执行此方法
-   public void actor1(I_Result r) {
-       if (ready) {
-           r.r1 = num + num;
-       } else {
-           r.r1 = 1;
-       }
-   }
-   
-   // 线程2：执行此方法
-   public void actor2(I_Result r) {
-       num = 2;
-       ready = true;
-   }
-   ```
-
-   可能的结果：1，4，**0（重排）**
-
-   解决办法：`volatile`修饰的变量，可以禁用指令重排（`volatile boolean ready = true`）
-
-### volatile关键字
-
-1. **保证内存可见性**
-
-   可见性是指线程之间的可见性，⼀个线程修改的状态对另⼀个线程是可见的。也就是⼀个线程修改的结果，另⼀个线程马上就能看到；
-
-   实现原理：
-
-   - 当对⾮`volatile`变量进⾏读写的时候，每个线程先从主内存拷贝变量到CPU缓存中，如果计算机有多个CPU， 每个线程可能在不同的CPU上被处理，这意味着每个线程可以拷贝到不同的CPU cache中；
-   - `volatile`变量不会被缓存在寄存器或者对其他处理器不可见的地⽅，保证了每次读写变量都从主内存中读，跳 过CPU cache这⼀步。当⼀个线程修改了这个变量的值，新值对于其他线程是⽴即得知的。 
-
-   ```java
-   public class Test {
-       private static volatile boolean run = true;
-   
-       public static void main(String[] args) throws InterruptedException {
-           new Thread(() -> {
-               while (run) {
-                   
-               }
-           },"t1").start();
-           Thread.sleep(1000);
-           run = false;
-       }
-   }
-   ```
-
-2. **禁止指令重排**
-
-3. 与`synchronized`对比：
-
-   - volatile可以保证数据的可见性，但不能保证原子性；
-   - synchronized可以保证原子性，也可以间接保证可见性，因为它会将私有内存和公共内存中的数据做同步
-
-## 并发编程——模式
-
-### 两阶段终止模式
-
-<img src="./assets/Snipaste_2023-10-06_10-13-33.png" style="zoom:50%;" />
-
-代码实现：
-
-```java
-@Slf4j(topic = "c.Test3")
-class TwoPhaseTermination {
-    // 监控线程监控当前线程是否被打断
-    private Thread monitor;
-
-    // 启动监控线程
-    public void start() {
-        monitor = new Thread(() -> {
-            while (true) {
-                Thread current = Thread.currentThread();
-                if (current.isInterrupted()) {
-                    log.debug("料理后事");
-                    break;
-                }
-                try {
-                    Thread.sleep(1000); // 阻塞时线程被打断会抛异常，打断标记不会设置为true
-                    log.debug("记录日志");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    // 重新设置打断标记
-                    current.interrupt();
-                }
-            }
-        });
-        monitor.start();
-    }
-
-    // 停止监控线程
-    public void stop() {
-        monitor.interrupt();
-    }
-}
-```
-
-不加`current.interrupt()`的**运行结果**：
-
-<img src="./assets/Snipaste_2023-10-06_10-17-39.png" style="zoom:50%;" />
-
-仅抛出异常，但由于没有重新设置打断标记，故没有终止。
