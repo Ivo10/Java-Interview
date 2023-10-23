@@ -93,8 +93,8 @@ System.out.println(a.equals(b)); //false
    - **属性**：必须使用`public static final`修饰（可以省略）
    - **方法**：
      - `jdk8`之前，声明抽象方法，修饰为`public abstract`（可以省略）
-     - `jdk8`：声明静态方法、默认方法
-     - `jdk9`：声明私有方法
+     - `jdk8`：声明**静态方法**、默认方法
+     - `jdk9`：声明**私有方法**
 
    不可以声明：构造器、代码块等
    
