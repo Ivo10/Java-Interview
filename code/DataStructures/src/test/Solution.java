@@ -1,62 +1,32 @@
 package test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
-public class Solution {
-    private List<Integer> list = new ArrayList<>();
-
-    public List<Integer> countSmaller(int[] nums) {
-        if (nums.length == 1) {
-            list.add(0);
-            return list;
+class Solution {
+    public int longestSubarray(int[] nums, int limit) {
+        if (nums == null || nums.length < 2) {
+            return 0;
         }
+        int ans = 0;
         for (int i = 0; i < nums.length; i++) {
-            list.add(0);
-        }
-        process(nums, 0, nums.length - 1);
-        return list;
-    }
-
-    public void process(int[] nums, int l, int r) {
-        if (l == r) {
-            return;
-        }
-        int mid = l + ((r - l) >> 1);
-        process(nums, l, mid);
-        process(nums, mid + 1, r);
-        merge(nums, l, mid, r);
-    }
-
-    public void merge(int[] nums, int l, int mid, int r) {
-        int[] help = new int[r - l + 1];
-        int p1 = l;
-        int p2 = mid + 1;
-        int i = 0;
-        while (p1 <= mid && p2 <= r) {
-            if (nums[p1] > nums[p2]) {
-                int index = p1;
-                while (index <= mid) {
-                    list.set(index, list.get(index) + 1);
-                    index++;
+            for (int j = i + 1; j < nums.length; j++) {
+                if (SubArray(nums, i, j) <= limit) {
+                    ans = Math.max(ans, j - i);
                 }
             }
-            help[i++] = nums[p1] <= nums[p2] ? nums[p1++] : nums[p2++];
         }
-        while (p1 <= mid) {
-            help[i++] = nums[p1++];
-        }
-        while (p2 <= r) {
-            help[i++] = nums[p2++];
-        }
-        for (int j = 0; j < help.length; j++) {
-            nums[l + j] = help[j];
-        }
+        return ans;
+    }
+
+    public int SubArray(int[] nums, int i, int j) {
+        int[] arrayCopy = Arrays.copyOf(nums, nums.length);
+        Arrays.sort(arrayCopy, i, j + 1);
+        return arrayCopy[j] - arrayCopy[i];
     }
 
     public static void main(String[] args) {
-        Solution solution = new Solution();
-        System.out.println(solution.countSmaller(new int[]{5, 2, 6, 1}));
-
+        int[] arr = {5, 4, 3, 2, 1};
+        Arrays.sort(arr, 0, 3);
+        System.out.println(Arrays.toString(arr));
     }
 }

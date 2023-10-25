@@ -93,7 +93,7 @@ System.out.println(a.equals(b)); //false
    - **属性**：必须使用`public static final`修饰（可以省略）
    - **方法**：
      - `jdk8`之前，声明抽象方法，修饰为`public abstract`（可以省略）
-     - `jdk8`：声明**静态方法**、默认方法
+     - `jdk8`：声明**静态方法**、**默认方法**
      - `jdk9`：声明**私有方法**
 
    不可以声明：构造器、代码块等
@@ -249,6 +249,325 @@ public class TestChinese {
 - 节省内存空间：byte占一个字节，char占用两个字节；
 - 如果一个字符串只包含英文字符或者ASCII字符，那么只用一个字节就可以表示所有字符；
 - 将`char[]`改为`byte[] + encoding flag field`
+
+## 异常体系
+
+### 1. 异常的体系结构
+
+- `java.lang.Throwable`：异常体系的根父类
+
+  - `java.lang.Error`：错误，Java虚拟机无法解决的严重问题。如：JVM系统内部错误、资源耗尽等严重情况，一般不编写针对性的代码进行处理。如：`StackOverflowError`、`OutofMemoryError`
+  - `java.lang.Exception`：异常，我们可以编写针对性的代码进行处理
+    - 编译时异常（受检异常）：在执行`javac.exe`命令时，出现的异常（编译时异常并不代表所有在编译时出现的错误或异常，而是指在Java中需要明确捕获或抛出的异常类型）
+    - 运行时异常（非受检异常）：在执行`java.exe`命令时，出现的异常
+      - `ArrayIndexOutofBoundsException`、`NullPointerException`、`ClassCastException`、`NumberFormatException`、`InputMismatchException`、`ArithmeticException`
+
+- **面试题：说一说开发中都遇到过哪些异常**
+
+  **运行时异常**
+
+  ```java
+  String str = null;
+  System.out.println(str.toString()); //java.lang.NullPointerException
+  int[] arr = null;
+  System.out.println(arr[0]); //java.lang.NullPointerException
+  ```
+
+  ```java
+  String s = new String();
+  Date date = (Date) s; //ClassCastException
+  ```
+
+  ```java
+  String s = "123a";
+  int i = Integer.parseInt(s);
+  System.out.println(i); //java.lang.NumberFormatException
+  ```
+
+  ```JAVA
+  Scanner scanner = new Scanner(System.in);
+  int num = scanner.nextInt(); //输入abc: java.util.InputMismatchException
+  ```
+
+  ```java
+  int num = 1 / 0; //java.lang.ArithmeticException: / by zero
+  ```
+
+  **编译时异常**
+
+  ```java
+  Class clz = Class.forName("java.lang.String"); //java.lang.ClassNotFoundException
+  ```
+
+  ```java
+  File file = new File("hello.txt");
+  FileInputStream fis = new FileInputStream(file); //java.io.FileNotFoundException
+  
+  int data = fis.read(); //java.io.IOException
+  while (data != -1) {
+      System.out.print((char) data);
+      data = fis.read();
+  }
+  fis.close(); //java.io.IOException
+  ```
+
+### 2. 异常处理方式
+
+#### 2.1 异常处理方式1：try-catch-finally
+
+- 抛：程序在执行的过程当中，一旦出现异常，就会在出现异常的代码处，**生成对应异常类的对象，并将此对象抛出**。一旦抛出，此程序就不执行其后的代码了；
+- 针对于“抓”中抛出的异常对象，进行捕获处理。此捕获处理过程，就成为抓。一旦将异常进行了处理，代码就可以继续执行。
+
+```java
+try {
+    // 可能产生异常的代码
+} catch(e1) {
+    
+} catch(e2) {
+    
+} finally {
+    
+}
+```
+
+**注意**：
+
+- 如果声明了多个catch结构，且多个异常类型满足**子父类的关系**。则必须将子类声明在父类结构的上面，否则报错
+- catch中的异常处理方式：
+  - `printStackTrace()`：打印异常的详细信息
+  - `getMessage()`：获取发生异常的原因
+
+#### 2.2 finally的使用说明
+
+- `finally`中声明**一定要被执行的代码**
+
+- 即，**无论try-catch中是否存在仍未被处理的异常，以及return语句，finally中的语句一定会被执行**
+
+- `finally`块里的语句在`try`或者`catch`里的任何`return`前执行。
+
+- **面试题**
+
+  ```java
+  try {
+      int i = Integer.parseInt("12a");
+      System.out.println(i);
+  } catch (NumberFormatException e) {
+      e.printStackTrace();
+      System.out.println(1 / 0);
+  } finally {
+      System.out.println("程序结束"); // catch块中又抛了一个异常，但finnally中的“程序结束”依然会被打印
+  }
+  ```
+
+  ```java
+  public static int test(String str) {
+      try {
+          Integer.parseInt(str);
+          return 1;
+      } catch (NumberFormatException e) {
+          return -1;
+      } finally {
+          System.out.println("test结束");
+      }
+  }
+  
+  public static void main(String[] args) {
+      int result = test("12a"); //test结束    -1
+      int result = test("12"); //test结束  1
+      System.out.println(result);
+  }
+  ```
+
+  ```java
+  public static int test(int num) {
+      try {
+          return num;
+      } catch (NumberFormatException e) {
+          return num--;
+      } finally {
+          System.out.println("test结束");
+          ++num;
+      }
+  }
+  
+  public static void main(String[] args) {
+      int result = test(10);
+      System.out.println(result); // 10
+  }
+  ```
+
+  参考博客：[try-catch-finally的深入理解](https://blog.csdn.net/weixin_47382783/article/details/125241849)
+
+#### 2.3 异常处理方式2：throws
+
+- 从编译是否能通过讲，看成是给出了异常万一要是出现时候的解决方案。此方案就是继续向上抛出（`throws`）；
+
+- 但是此`throws`的方式，仅仅是将可能出现的异常抛给了此方法的调用者，**调用者仍然需要考虑如何处理相关异常**。因此，throws方式不算是真正意义上处理了异常；
+
+- **子类重写的方法**抛出的异常类型，可以和父类被重写的方法抛出的异常类型**相同**，或者是父类被重写方法抛出异常的**子类**（如果父类方法没有抛异常，子类方法只能`try-catch`了）
+
+  ```java
+  public static void main(String[] args) {
+      Father father = new Son();
+      try {
+          father.method1();
+      } catch (IOException e) {
+          e.printStackTrace(); //无法捕获
+      }
+  }
+  
+  class Father {
+      public void method1() throws IOException {
+  
+      }
+  }
+  
+  class Son extends Father{
+      @Override
+      public void method1() throws Exception { // 报错！
+  
+      }
+  }
+  // 编译时father看成是Father的引用，但子类Son抛出的异常比父类还大，那就无法catch住了
+  ```
+
+- 开发中如何选择？
+  - 程序中涉及到资源的调用（流、数据库连接、网络连接），使用`try-catch-finally`处理；
+  - 父类没有`throws`异常，那么子类重写的方法如果出现异常，只能使用`try-catch-finally`处理；
+  - 方法a依次调用了方法b、c、d，方法b、c、d之间是递进关系。如果方法b、c、d中有异常，通常选择使用`throws`，方法a中使用`try-catch-finally`。
+
+### 3. 手动抛出异常对象：throw
+
+- **手动抛**：程序在执行的过程当中，不满足指定条件的情况下，使用`throw + 异常类对象`方式抛出异常；
+- `throw`后的代码不能被执行，编译不通过；
+- `throw`出来的异常也有两种处理方式：`try-catch-finally`或`throws`
+- **面试题**：`throws`和`throw`的区别
+
+### 4. 自定义异常类
+
+**如何自定义异常类？**
+
+1. 继承于现有的异常体系，通常继承于`RuntimeException` \ `Exception`；
+2. 通常提供几个重载的构造器；
+3. 提供一个全局常量，声明为`static final long serialVersionUID`
+
+**如何使用自定义异常类？**
+
+- 具体代码中，满足指定的条件下，需要手动地使用`throw + 自定义异常类对象`的方式，将异常对象抛出；
+- 如果自定义异常类是非运行时异常类，必须考虑如何处理此异常类的对象（`try-catch-finally`或`throws`）
+
+**为什么要自定义异常类？**
+
+- 我们更关心的是，通过异常的名称就能直接判断此异常出现的原因；
+- 既然如此，我们就有必要再实际开发场景中，不满足我们指定的条件时，指明我们自己特有的异常类；
+- 通过此异常类的名称，就能判断出具体出现的问题。
+
+## 日期时间API
+
+### 1. jdk8之前的API
+
+#### 1.1 System类中的`currentTimeMillis()`
+
+- 获取当前时间对应的毫秒数，long类型，时间戳（1970年1月1日0是0分0秒的毫秒数）
+- 开发中常用来计算时间差（方法的执行时间）
+
+#### 1.2 两个Date类：远古时代的API
+
+##### 1.2.1 早期`java.util.Date`
+
+两个构造器：
+
+```java
+Date date1 = new Date(); //创建一个基于当前系统时间的Date实例
+```
+
+```java
+Date date2 = new Date(System.currentTimeMillis()); //创建一个基于指定时间戳的Date实例
+```
+
+两个方法：
+
+```java
+long milliTimes = date1.getTime(); //获取毫秒数
+```
+
+```java
+System.out.println(date2.toString()); // 获取时间：Wed Oct 25 20:16:52 CST 2023
+```
+
+##### 1.2.2 `java.sql.Date`
+
+- 继承于`java.util.Date`
+
+- 构造器：
+
+  ```java
+  java.sql.Date date1 = new java.sql.Date(System.currentTimeMillis());
+  System.out.println(date1); //2023-10-25
+  ```
+
+#### 1.3 `java.text.SimpleDateFormat`：日期时间的格式化和解析
+
+- **用于日期时间的格式化和解析**
+
+- 格式化：日期Date$\rightarrow$字符串，调用`format()`方法；
+
+- 解析：字符串$\rightarrow$日期Date，调用`parse()`方法；
+
+- 举例：
+
+  ```java
+  SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); //构造器传入指定的格式
+  String strDate = sdf.format(new Date()); //2023-10-25 20:36:30
+  System.out.println(strDate);
+  
+  Date date2 = sdf.parse("2023-10-25 20:32:14");
+  System.out.println(date2);
+  
+  Date date3 = sdf.parse("2021年5月20日 20:32:14");
+  System.out.println(date3); //解析失败
+  ```
+
+#### 1.4 `java.util.Calendar`（日历类）：试图解决Date的问题
+
+- **实例化**：由于`Calendar`是一个抽象类，所以需要创建其子类的实例。这里我们通过`Calendar`的静态方法`getInstance()`即可获取；
+
+- **常用方法**：`get (int field)`、`set(int filed, xx)`、`add(int field, xx)` 、`getTime()`、`setTime(Date)`
+
+  ```java
+  Calendar calendar = Calendar.getInstance();
+  System.out.println(calendar.getClass());
+  
+  System.out.println(calendar.get(Calendar.DAY_OF_MONTH));
+  System.out.println(calendar.get(Calendar.DAY_OF_WEEK));
+  System.out.println(calendar.get(Calendar.DAY_OF_MONTH));
+  
+  calendar.set(Calendar.DAY_OF_MONTH, 1);
+  
+  calendar.add(Calendar.DAY_OF_MONTH, 3);
+  System.out.println(calendar.get(Calendar.DAY_OF_MONTH));
+  ```
+
+### 2. jdk8新增的API
+
+jdk8之前日期时间API**存在的问题**
+
+- 可变性：像日期和时间这样的类应该是不可变的；
+- 偏移性：`Date`中的年龄是从1900开始的，而月份都是从0开始的；
+- 格式化：格式化（`SimpleDateFormat`）只对`Date`有用，而`Calendar`则不行；
+- 此外，它们也不是线程安全的；不能处理闰秒等。
+
+#### 2.1 本地日期时间：LocalDate、LocalTime、LocalDateTime
+
+| 方法                                         | 描述                           |
+| -------------------------------------------- | ------------------------------ |
+| `now()`                                      | 获取当前日期和时间的对象       |
+| `of()`                                       | 获取指定的日期、时间对应的实例 |
+| 其他（getXXX、withXXX、plusXXX、minusXXX）略 | 自己查                         |
+
+#### 2.2 瞬时：Instant
+
+
 
 ## 反射
 
