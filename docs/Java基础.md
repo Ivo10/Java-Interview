@@ -770,7 +770,267 @@ public void test4() {
 
 #### 4.2 注意点
 
+- 对于字符流，只能用来操作文本文件，不能用来操作非文本文件；
+- 对于字节流，通常是用来处理非文本文件。但是，如果涉及到文本文件的复制操作，也可以使用字节流（如果涉及写入，就可能产生乱码了）；
+- 文本文件：.txt、.c、.cpp、.py、.java等；
+- 非文本文件：.doc、.xls、.jpg等；
 
+### 5. 缓冲流的使用
+
+#### 5.1 基础的IO流框架
+
+| 抽象基类       | 4个节点流（也成为文件流） | 4个缓冲流（处理流的一种） |
+| -------------- | ------------------------- | ------------------------- |
+| `InputStream`  | `FileInputStream`         | `BufferedInputStream`     |
+| `OutputStream` | `FileOuputStream`         | `BufferedOutputStream`    |
+| `Reader`       | `FileReader`              | `BufferedReader`          |
+| `Writer`       | `FileWrter`               | `BufferedWriter`          |
+
+#### 5.2 缓冲流的作用
+
+提升文件读写的效率
+
+#### 5.3 实现步骤
+
+1. 创建File的对象、流的对象（包括文件流、缓冲流）；
+2. 使用缓冲流实现读取数据或写出数据的过程
+   - 读取：int read(char[] cbuf/byte[] buffer)
+   - 写出：
+     - void write(String str) / write(char[] cbuf)
+     - void write(byte[] buffer)
+3. 关闭资源
+
+```java
+// 使用BufferedInputStream、BufferedOuputStream复制一个图片
+@Test
+public void test1() throws IOException{ //此操作还是应该使用try-catch-finally处理
+    File srcFile = new File("C:\\Users\\Xiong Wei\\Pictures\\Saved Pictures\\sun.jpg");
+    File destFile = new File("sun.jpg");
+
+    FileInputStream fis = new FileInputStream(srcFile);
+    FileOutputStream fos  = new FileOutputStream(destFile);
+
+    BufferedInputStream bis = new BufferedInputStream(fis);
+    BufferedOutputStream bos = new BufferedOutputStream(fos);
+
+    byte[] buffer = new byte[1024];
+    int len;
+    while ((len = bis.read(buffer))!=-1){
+        bos.write(buffer,0,len);
+    }
+    System.out.println("copy success!");
+
+    //外层流的关闭也会自动地对内层流进行关闭，
+    bos.close();
+    bis.close();
+}
+```
+
+**验证缓冲流提升文件读写效率**
+
+```java
+@Test
+public void testSpendTime() {
+    long start = System.currentTimeMillis();
+
+    String src = "C:\\Users\\Xiong Wei\\Videos\\7c11bad9f270e07209ae80ae1c83eeee.mp4";
+    String dest = "pina.mp4";
+    //        copyFileWithFileStream(src, dest); //2584
+    copyFileWithBufferedStream(src, dest); //22
+
+    long end = System.currentTimeMillis();
+    System.out.println("花费的时间为" + (end - start));
+}
+
+//使用FileInputStream + FileOutputStream复制文件
+public void copyFileWithFileStream(String src, String dest) {
+    FileInputStream fis = null;
+    FileOutputStream fos = null;
+    try {
+        File srcFile = new File(src);
+        File destFile = new File(dest);
+        fis = new FileInputStream(srcFile);
+        fos = new FileOutputStream(destFile);
+        int len;
+        byte[] buffer = new byte[50];
+        while ((len = fis.read(buffer)) != -1) {
+            fos.write(buffer, 0, len);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            if (fis != null) {
+                fis.close();
+            }
+            if (fos != null) {
+                fos.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public void copyFileWithBufferedStream(String str, String dest) {
+    BufferedInputStream bis = null;
+    BufferedOutputStream bos = null;
+    try {
+        File srcFile = new File("C:\\Users\\Xiong Wei\\Pictures\\Saved Pictures\\sun.jpg");
+        File destFile = new File("sun.jpg");
+
+        FileInputStream fis = new FileInputStream(srcFile);
+        FileOutputStream fos = new FileOutputStream(destFile);
+
+        bis = new BufferedInputStream(fis);
+        bos = new BufferedOutputStream(fos);
+
+        byte[] buffer = new byte[50];
+        int len;
+        while ((len = bis.read(buffer)) != -1) {
+            bos.write(buffer, 0, len);
+        }
+        System.out.println("copy success!");
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    } finally {
+        //外层流的关闭也会自动地对内层流进行关闭，
+        try {
+            if (bos != null) {
+                bos.close();
+            }
+            if (bis != null) {
+                bis.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 6. 转换流
+
+### 7. 对象流
+
+#### 7.1 数据流及其作用（了解）
+
+- `DataOutputstream`：可以将内存中基本数据类型、String型的变量写到具体的文件中；
+- `DataInputstream`：将文件中保存的数据还原为内存中的基本数据类型、String型变量
+
+#### 7.2 对象流及其作用
+
+- 可以读取基本数据类型的变量、引用数据类型的变量
+- `ObjectInputStream`、`ObjectOutputStream`
+
+#### 7.3 对象的序列化机制（面试题）
+
+- 对象序列化机制允许把内存中的Java对象转换成平台无关的二进制流，从而允许把这种二进制流持久地保存在磁盘上，或通过网络将沼泽中二进制流传输到另一个网络节点；
+- 当其他程序获取了这种二进制流，就可以恢复成原来的Java对象；
+- **序列化过程**：使用`ObjectOutputStream`流实现，将内存中的Java对象保存在文件中或通过网络传输出去；
+- **反序列化过程**：使用`ObjectInputStream`流实现，将文件中或网络传输过来的数据还原为内存中的Java对象。
+
+- **举例**：
+
+  ```java
+  //序列化过程
+  @Test
+  public void test1() throws IOException {
+      File file = new File("object.txt");
+      ObjectOutputStream objectOutputStream =
+          new ObjectOutputStream(new FileOutputStream(file));
+      objectOutputStream.writeUTF("北国风光，千里冰封，万里雪飘");
+      objectOutputStream.flush();
+      objectOutputStream.writeObject("世上无难事，只要肯登攀");
+      objectOutputStream.close();
+  }
+  
+  //反序列化过程
+  @Test
+  public void test2() throws IOException, ClassNotFoundException {
+      File file = new File("object.txt");
+      ObjectInputStream objectInputStream =
+          new ObjectInputStream(new FileInputStream(file));
+      String str1 = objectInputStream.readUTF();
+      System.out.println(str1);
+      String str2 = (String)objectInputStream.readObject();
+      System.out.println(str2);
+      objectInputStream.close();
+  }
+  //补充：上述例子中知道了写入文件的序列化对象的个数，如果不知道的话，可以利用捕获EOFException的方式，自动结束反序列化
+  ```
+
+#### 7.4 自定义类实现序列化
+
+- 自定义类需要实现接口`Serializable`；
+
+- 要求自定义类声明一个全局常量：`static final long serialVersionUID`，权限随意；
+
+- 要求自定义类的各个属性也必须是可序列化的：
+  - 基本数据类型的属性：默认就是可序列化的；
+  - 应用数据类型的属性：要求实现`Serializable`接口；
+  
+- **注意点**
+  - 如果不声明全局常量`serialVersionUID`，系统会自动生成一个针对于当前类的`serialVersionUID`；如果修改此类，会导致`serialVersionUID`变化，进而导致反序列化时，会出现`java.io.InvalidClassException`
+  - 类中的属性如果声明为`transient`或`static`，则不会实现序列化（该属性不会保存在文件中）
+  
+- 例子：
+
+  ```java
+  public class Student implements Serializable { //Serializable: 标识接口
+      private final static long serialVersionUID = 4242424242L;
+      private transient String name;
+      private static int age;
+      private int id;
+  
+      public int getId() {
+          return id;
+      }
+  
+      public void setId(int id) {
+          this.id = id;
+      }
+  
+      @Override
+      public String toString() {
+          return "Student{" +
+                  "name='" + name + '\'' +
+                  ", age=" + age +
+                  ", id=" + id +
+                  '}';
+      }
+  
+      public Student(String name, int age, int id) {
+          this.name = name;
+          this.age = age;
+          this.id = id;
+      }
+  
+      public Student(String name, int age) {
+          this.name = name;
+          this.age = age;
+      }
+  
+      public Student() {
+      }
+  
+      public String getName() {
+          return name;
+      }
+  
+      public void setName(String name) {
+          this.name = name;
+      }
+  
+      public int getAge() {
+          return age;
+      }
+  
+      public void setAge(int age) {
+          this.age = age;
+      }
+  }
+  ```
 
 ## 反射
 
