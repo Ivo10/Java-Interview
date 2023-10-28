@@ -96,7 +96,7 @@ System.out.println(a.equals(b)); //false
      - `jdk8`：声明**静态方法**、**默认方法**
      - `jdk9`：声明**私有方法**
 
-   不可以声明：构造器、代码块等
+   不可以声明：构造器、代码块等，**接口没有继承Object类**
    
 2. **接口中声明静态方法**：接口中声明的静态方法只能被接口来调用，不能被其实现类进行调用
 
@@ -336,6 +336,7 @@ try {
 - catch中的异常处理方式：
   - `printStackTrace()`：打印异常的详细信息
   - `getMessage()`：获取发生异常的原因
+- try中声明的变量，除了try结构之后，就不可以进行调用了；
 
 #### 2.2 finally的使用说明
 
@@ -510,9 +511,9 @@ System.out.println(date2.toString()); // 获取时间：Wed Oct 25 20:16:52 CST 
 
 - **用于日期时间的格式化和解析**
 
-- 格式化：日期Date$\rightarrow$字符串，调用`format()`方法；
+- 格式化：日期`Date`$\rightarrow$字符串，调用`format()`方法；
 
-- 解析：字符串$\rightarrow$日期Date，调用`parse()`方法；
+- 解析：字符串$\rightarrow$日期`Date`，调用`parse()`方法；
 
 - 举例：
 
@@ -552,46 +553,309 @@ System.out.println(date2.toString()); // 获取时间：Wed Oct 25 20:16:52 CST 
 
 jdk8之前日期时间API**存在的问题**
 
-- 可变性：像日期和时间这样的类应该是不可变的；
-- 偏移性：`Date`中的年龄是从1900开始的，而月份都是从0开始的；
-- 格式化：格式化（`SimpleDateFormat`）只对`Date`有用，而`Calendar`则不行；
+- **可变性**：像日期和时间这样的类应该是不可变的；
+- **偏移性**：`Date`中的年龄是从1900开始的，而月份都是从0开始的；
+- **格式化**：格式化（`SimpleDateFormat`）只对`Date`有用，而`Calendar`则不行；
 - 此外，它们也不是线程安全的；不能处理闰秒等。
 
 #### 2.1 本地日期时间：LocalDate、LocalTime、LocalDateTime
 
-| 方法                                         | 描述                           |
-| -------------------------------------------- | ------------------------------ |
-| `now()`                                      | 获取当前日期和时间的对象       |
-| `of()`                                       | 获取指定的日期、时间对应的实例 |
-| 其他（getXXX、withXXX、plusXXX、minusXXX）略 | 自己查                         |
+| 方法                                               | 描述                           |
+| -------------------------------------------------- | ------------------------------ |
+| `now()`                                            | 获取当前日期和时间的对象       |
+| `of()`                                             | 获取指定的日期、时间对应的实例 |
+| 其他（`getXXX`、`withXXX`、`plusXXX`、`minusXXX`） | 自己查                         |
 
 #### 2.2 瞬时：Instant
+
+#### 2.3 DateTimeFormatter：类似于SimpledateFormat
+
+用于格式化和解析`LocalDate`、`LocalTime`、`LocalDateTime`
+
+```java
+DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+String strDate = dtf.format(LocalDate.now());
+System.out.println(strDate);
+
+TemporalAccessor temporalAccessor = dtf.parse(strDate);
+LocalDate date = LocalDate.from(temporalAccessor);
+System.out.println(date);
+```
+
+## File类与IO流
+
+### 1. File类的理解
+
+#### 1.1 File类的理解
+
+- File类位于java.io包下，File类的一个对象，对应于操作系统下的一个文件或一个文件目录；
+
+#### 1.2 绝对路径与相对路径
+
+- 绝对路径：以Windows操作系统为例，包括盘符在内的文件或文件目录的完整路径；
+- 相对路径：相对于某一个文件目录的相对位置
+  - 在IDEA中，如果使用单元测试方法：相对于当前的module
+  - 如果使用main()方法，相对于当前的project来讲；
+
+#### 1.3 内部API使用
+
+- **构造器**：
+
+  ```java
+  public File(String pathname);
+  public File(String parent, String child); //parent一定是一个文件目录，child可以是文件也可以是文件目录。下面同理
+  public File(File parent, String child);
+  ```
+
+- **常用方法**
+
+  ```java
+  public String getName(); //获取名称
+  public String getPath(); //获取路径
+  public String getAbsolutePath(); //获取绝对路径
+  public File getAbsoluteFile(); //获取绝对路径表示的文件
+  public String getParent(); //获取上层文件目录路径，若无（相对路径表示），返回null
+  public long length(); //获取文件长度
+  public long lastModified(); //获取最后一次修改时间
+  
+  public String[] list(); //该File目录中的所有子文件或目录名
+  public File[] listFiles(); //显示的是绝对路径
+  ```
+
+### 2. IO流原理及流的分类
+
+#### 2.1 Java IO原理
+
+![](../assets/Snipaste_2023-10-27_10-07-03.png)
+
+#### 2.2 流的分类
+
+- 按数据的流向分：**输入流**、**输出流**
+
+- 按操作数据单位的不同分：字节流和字符流
+
+  - **字节流**（8bit）：以字节为单位读写数据，以InputStream、OutputStream结尾
+  - **字符流**（16bit）：以字符为单位读写数据，以Reader、Writer结尾
+
+- 按IO流的角色不同分：节点流和处理流
+
+  - **节点流**：直接从数据源或目的地读写数据：
+
+    <img src="../assets/Snipaste_2023-10-27_10-23-33.png" style="zoom: 67%;" />
+
+  - **处理流**：不直接连接到数据源或目的地，而是“连接”在已存在的流（节点流或处理流）之上：
+
+    <img src="../assets/Snipaste_2023-10-27_10-24-10.png" style="zoom:67%;" />
+
+#### 2.3 流的API
+
+- 4个抽象基类（都是节点流）：
+
+  |        | 输入流      | 输出流       |
+  | ------ | ----------- | ------------ |
+  | 字节流 | InputStream | OutputStream |
+  | 字符流 | Reader      | Writer       |
+
+- **常用的节点流**
+  - 文件流：`FileInputStream`、`FileOutputStream`、`FileReader`、`FileWriter`
+  - 
+
+### 3. FileReader/FileWriter的使用
+
+#### 3.1 执行步骤
+
+1. 创建读取或写出的`File`类的对象；
+2. 创建输入流或输出流
+3. 具体的读入或写出的过程
+   - 读入：`read(char[] cbuffer)`
+   - 写出：`write(String str)` / `writer(char[] cbuffer, 0, len)`
+4. 关闭流资源，避免内存泄漏
+
+```java
+// throws处理异常
+@Test
+public void test1() throws IOException {
+    File file = new File("D:/hello.txt");
+    FileReader fr = new FileReader(file);
+    int data;
+    while ((data = fr.read()) != -1) {
+        System.out.print((char) data);
+    }
+    fr.close();
+}
+
+// try-catch-finally实现流的关闭
+@Test
+public void test2() {
+    FileReader fr = null;
+    try {
+        File file = new File("D:/hello.txt");
+        fr = new FileReader(file);
+        int data;
+        while ((data = fr.read()) != -1) { //而每次都要进行磁盘IO，浪费时间
+            System.out.println((char) data);
+        }
+    } catch (IOException e) {
+        throw new RuntimeException(e);
+    } finally {
+        try {
+            if (fr != null) {
+                fr.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+
+// 对test2进行优化，每次读取多个字符存放到字符数组中，减少了与磁盘交互的次数，提升效率
+@Test
+public void test3() {
+    FileReader fr = null;
+    try {
+        File file = new File("d:/hello.txt");
+        fr = new FileReader(file);
+        char[] cbuffer = new char[5];
+        int len;
+        while ((len = fr.read(cbuffer)) != -1) { //每次读取五个或少于五个字符到cbuffer中，减少IO
+            for (int i = 0; i < len; i++) {
+                System.out.print(cbuffer[i]);
+            }
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            fr.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+//使用字符流写入文件，使用FileWriter
+@Test
+public void test4() {
+    FileWriter fw = null;
+    try {
+        File file = new File("info.txt");
+        fw = new FileWriter(file, true);
+        fw.write("I love you!\n");
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### 3.2 注意点
+
+- 因为涉及到流资源的关闭操作，所以出现异常的话，需要使用`try-catch-finally`的方式处理异常
+- 对于输入流来讲，要求`File`类的对象对应的物理磁盘上的我呢见必须存在。否则会报`FileNotFoundException`
+- 对于输出流来讲，`File`类的对象对应的物理磁盘上的文件可以不存在
+  - 如果此文件不存在，则在输出过程中自动创建此文件，并将数据写入到此文件中；
+  - 如果此文件存在，使用`FileWriter(File file)`或`FileWriter(File file, false)`输出数据过程中，会新建同名的文件对现有的文件进行覆盖。
+
+### 4. FileInputStream \ FileOutputStream的使用
+
+#### 4.1 执行步骤
+
+与`FileWriter`、`FileReader`类似，但读入为`read(byte[] buffer)`，写出`write(byte[] buffer, 0, len)`，使用的为`byte[]`
+
+#### 4.2 注意点
 
 
 
 ## 反射
 
-### 谈一谈对Class类的理解
+### 1. 反射的概念
+
+![](../assets/Snipaste_2023-10-26_09-58-18.png)
+
+- 反射相关的主要API
+  - java.lang.Class
+  - java.lang.reflect.Method
+  - java.lang.reflect.Field
+  - java.lang.reflect.Constructor
+  - ......
+- 反射的优缺点
+
+![image-20231026100125608](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20231026100125608.png)
+
+### 2. Class类及其获取
+
+#### 2.1 Class类的理解——反射的源头
 
 - 针对于编写好的`.java`源文件进行编译（`javac.exe`），会生成一个或多个`.class`字节码文件；
-- 接着，我们使用`java.exe`命令对指定的`.class`文件进行解释运行，在解释运行过程中，我们需要将`.class`字节码文件**加载**到内存中。加载到内存中的`.class`文件对应的结构即为`Class`的一个实例（类的加载过程见JVM篇）。
+- 接着我们使用`java.exe`命令对指定的`.class`文件进行解释运行；
+- 这个解释运行过程当中，我们需要将`.class`字节码文件加载到内存，加载到内存中的`.class`文件对应的结构即为`Class`的一个实例;
 
-### 获取Class实例的四种方式
+![](../assets/Snipaste_2023-10-26_10-08-14.png)
 
-1. ```java
-   Class<String> stringClass = String.class;
-   ```
+#### 2.2 获取Java类的几种方式
 
-2. ```java
-   Class<?> stringClass = Class.forName("java.lang.String");
-   ```
+```java
+//① 使用类.class
+Class<Person> clazz1 = Person.class;
 
-3. ```java
-   String s = "hello";
-   Class<? extends String> stringClass3 = s.getClass();
-   ```
+//② 使用实例.getClass()
+Person person = new Person();
+Class<? extends Person> clazz2 = person.getClass();
+System.out.println(clazz1 == clazz2);
 
-4. ```java
-   Class<?> testClass = ClassLoader.getSystemClassLoader().loadClass("jvm.Test"); // s
-   ```
+//③ 使用全类名
+String className = "reflection.Person";
+Class<?> clazz3 = Class.forName(className);
+System.out.println(clazz1 == clazz3);
 
+//④ 使用类加载器
+Class<?> clazz4 = ClassLoader.getSystemClassLoader().loadClass(className);
+System.out.println(clazz1 == clazz4);
+```
+
+#### 2.3 Class实例可以指向的结构——所有Java类型
+
+- class：外部类，成员（成员内部类、静态内部类），局部内部类，匿名内部类
+- interface：接口
+- []：数组
+
+- enum：枚举
+- annotation：注解
+- primitive type：基本数据类型
+- void
+
+**注意**：
+
+```java
+int[] arr1 = new int[10];
+int[] arr2 = new int[100];
+Class<? extends int[]> arr1Class = arr1.getClass();
+Class<? extends int[]> arr2Class = arr2.getClass();
+System.out.println(arr1Class == arr2Class); //只要元素类型和维度一样，就是一个Class
+```
+
+### 3. 反射应用1：创建运行时类的对象
+
+- 通过`Class`实例调用`newInstance()`即可
+
+- 创建对象需要**满足的条件**：
+
+  - 要求运行时类中必须提供一个空参构造器，没有的话抛InstantiationException；
+
+  - 要求提供的空参构造器的权限要足够，不够的话抛IllegalAccessException；
+
+- 回忆：JavaBean要求给当前类提供一个空参的构造器
+  - 场景1：子类对象在实例化时，子类的构造器首行默认调用父类空参的构造器；
+  - 场景2：在反射中，经常用来创建运行时类的对象。那么我们要求各个运行时类都提供一个空参构造器，便于编写创建运行时类的代码；
+- jdk9中表示为过时，替换为：通过Constructor类调用newInstance
+
+### 4. 反射应用2：获取运行时类的内部结构
+
+- 获取运行时类的内部结构1：所有属性、所有方法、所有构造器
+- 
