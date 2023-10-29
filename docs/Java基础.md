@@ -792,12 +792,12 @@ public void test4() {
 
 #### 5.3 实现步骤
 
-1. 创建File的对象、流的对象（包括文件流、缓冲流）；
+1. 创建`File`的对象、流的对象（包括文件流、缓冲流）；
 2. 使用缓冲流实现读取数据或写出数据的过程
-   - 读取：int read(char[] cbuf/byte[] buffer)
+   - 读取：`int read(char[] cbuf/byte[] buffer)`
    - 写出：
-     - void write(String str) / write(char[] cbuf)
-     - void write(byte[] buffer)
+     - `void write(String str) `/ `write(char[] cbuf)`
+     - `void write(byte[] buffer)`
 3. 关闭资源
 
 ```java
@@ -971,8 +971,9 @@ public void copyFileWithBufferedStream(String str, String dest) {
   - 应用数据类型的属性：要求实现`Serializable`接口；
   
 - **注意点**
+  
   - 如果不声明全局常量`serialVersionUID`，系统会自动生成一个针对于当前类的`serialVersionUID`；如果修改此类，会导致`serialVersionUID`变化，进而导致反序列化时，会出现`java.io.InvalidClassException`
-  - 类中的属性如果声明为`transient`或`static`，则不会实现序列化（该属性不会保存在文件中）
+  - **类中的属性如果声明为`transient`或`static`，则不会实现序列化（该属性不会保存在文件中）**
   
 - 例子：
 
@@ -1031,6 +1032,20 @@ public void copyFileWithBufferedStream(String str, String dest) {
       }
   }
   ```
+
+### 8. 其他流的使用
+
+#### 8.1 标准输入、输出流
+
+- `System.in`：标准的输入流，默认从键盘输入
+
+- `System.out`：标准的输出流，默认从显示器输出
+
+- 通过调用如下的方法，修改输入流和输出流的位置：
+  - `setIn(InputStream is)`
+  - `setOut(PrintStream ps)`
+
+#### 9.3 Stream 
 
 ## 反射
 
@@ -1119,3 +1134,241 @@ System.out.println(arr1Class == arr2Class); //只要元素类型和维度一样�
 
 - 获取运行时类的内部结构1：所有属性、所有方法、所有构造器
 - 
+
+## jdk8新特性
+
+### 1. lambda表达式
+
+#### 1.1 lambda表达式的格式举例
+
+- -> ：lambda操作符或箭头操作符
+- ->左边：lambda形参列表，对应着要重写的接口中的抽象方法的形参列表
+- ->右边：lambda体，对应着接口的实现类要重写的方法的方法体
+
+#### 1.2 lambda表达式的本质
+
+- 一方面，lambda表达式作为**接口的实现类的对象**；
+- 另一方面，lambda表达式是一个**匿名函数**；
+
+#### 1.3 函数式接口
+
+- 函数式接口：接口中只声明有一个抽象方法，则此接口就称为函数式接口‘
+- 只有给函数式提供实现类对象时，才可以使用lambda表达式；
+
+- API中函数式接口所在的包：`java.util.function`包下
+
+**4个基本的函数式接口**：
+
+![image-20231029200626976](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20231029200626976.png)
+
+#### 1.4 具体使用情况说明
+
+```java
+```
+
+
+
+### 2. 方法引用和构造器引用
+
+#### 2.1 方法引用的理解
+
+- 方法引用，可以看作是基于lambda表达式的进一步刻画；
+- 当需要提供一个函数式接口的实例时，我们可以使用lambda表达式提供此实例；
+  - 当满足一定的条件下，我们还可以使用方法引用或构造器引用替换lambda表达式；
+
+#### 2.2 方法引用的本质
+
+- 方法引用作为函数式接口的实例
+- 格式：`类(对象)::方法名`
+  - 情况1：`对象::实例方法名`
+  - 情况2：`类::静态方法`
+  - 情况3：`类::实例方法`
+
+#### 2.3 具体使用情况说明
+
+- `对象::实例方法`
+
+  - 要求函数式接口中的抽象方法a与其内部实现时调用的**某个对象的方法b**的**形参列表和返回值都相同**。此时，可以考虑使用方法b实现对方法a的替换、覆盖；此替换或覆盖即为方法引用；
+  - **注意**：此方法b是非**静态的方法，需要对象调用**；
+
+  ```java
+  Consumer<String> consumer1 = new Consumer<String>() {
+      @Override
+      public void accept(String s) {
+          System.out.println(s);
+      }
+  };
+  Consumer<String> consumer2 = s -> System.out.println(s);
+  Consumer<String> consumer3 = System.out::println;
+  ```
+
+  ```java
+  Employee emp = new Employee(1001, "Huang zichang", 25, 6000.38);
+  Supplier<String> supplier = new Supplier<String>() {
+      @Override
+      public String get() {
+          return emp.getName();
+      }
+  };
+  
+  Supplier<String> supplier2 = () -> emp.getName();
+  
+  Supplier<String> supplier3 = emp::getName;
+  ```
+
+- `类::静态方法`
+
+  - 要求函数式接口中的抽象方法a与其内部实现时调用的**某个类的方法b**的**形参列表和返回值都相同**。此时，可以考虑使用方法b实现对方法a的替换、覆盖；此替换或覆盖即为方法引用；
+  - **注意**：此方法b是**静态的方法，需要类调用**；
+
+  ```java
+  Comparator<Integer> com1 = new Comparator<Integer>() {
+      @Override
+      public int compare(Integer o1, Integer o2) {
+          return Integer.compare(o1, o2);
+      }
+  };
+  
+  Comparator<Integer> com2 = (o1, o2) -> Integer.compare(o1, o2);
+  
+  Comparator<Integer> com3 = Integer::compare;
+  ```
+
+  ```java
+  Function<Double, Long> fun1 = new Function<Double, Long>() {
+      @Override
+      public Long apply(Double aDouble) {
+          return Math.round(aDouble);
+      }
+  };
+  
+  Function<Double, Long> func2 = aDouble -> Math.round(aDouble);
+  
+  Function<Double, Long> func3 = Math::round;
+  ```
+
+- `类::实例方法`
+
+  - 函数式接口的抽象方法a与其内部实现时调用的对象的某个方法b的返回值类型相同；
+  - 同时，方法a中有$n$个参数，方法b中有$n-1$个参数，且方法a的第一个参数作为b的调用者，且a的后$n-1$个参数与方法b的$n$个参数的类型相同；
+  - **注意**：此方法b非静态的方法，需要对象调用。但形式上写出对象a所属的类；
+
+  ```java
+  Comparator<String> com1 = new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+          return o1.compareTo(o2);
+      }
+  };
+  
+  Comparator<String> com2 = (o1, o2) -> o1.compareTo(o2);
+  
+  Comparator<String> com3 = String::compareTo;
+  ```
+
+  ```java
+  BiPredicate<String, String> bipre1 = new BiPredicate<String, String>() {
+      @Override
+      public boolean test(String s, String s2) {
+          return s.equals(s2);
+      }
+  };
+  
+  BiPredicate<String, String> bipre2 = (s1, s2) -> s1.equals(s2);
+  
+  BiPredicate<String, String> bipre3 = String::equals;
+  ```
+
+  ```java
+  Employee emp = new Employee(1001, "Huang Zichang", 25, 6000.38);
+  Function<Employee, String> fun1 = new Function<Employee, String>() {
+      @Override
+      public String apply(Employee employee) {
+          return employee.getName();
+      }
+  };
+  
+  Function<Employee, String> fun2 = e -> e.getName();
+  
+  Function<Employee, String> fun3 = Employee::getName;
+  ```
+
+#### 2.4 构造器引用
+
+- 调用了类名对应的类中某一个确定的构造器
+- **具体调用的是类中的哪一个构造器呢？取决于函数式接口的抽象方法的形参列表**
+
+```java
+Function<Integer, Employee> func1 = new Function<Integer, Employee>() {
+    @Override
+    public Employee apply(Integer id) {
+        return new Employee(id);
+    }
+};
+
+Function<Integer, Employee> func2 = Employee::new;
+```
+
+```java
+BiFunction<Integer,String,Employee> func1 = new BiFunction<Integer, String, Employee>() {
+    @Override
+    public Employee apply(Integer id, String name) {
+        return new Employee(id, name);
+    }
+};
+
+BiFunction<Integer, String, Employee> func2 = Employee::new;
+```
+
+### 3. Java8新特性：Stream API
+
+#### 3.1 Stream API vs 集合框架
+
+- Stream API关注的是多个数据的计算（排序、查找、过滤、映射、遍历等），面向CPU的；集合关注的数据的存储，面向内存的；
+- Stream API之于集合，类似于SQL之于数据表的查询；
+
+#### 3.2 Stream执行流程
+
+1. Stream实例化
+
+   三种实例化Stream的方式：
+
+   ```java
+   public List<Student> getList() {
+       List<Student> list = new ArrayList<>();
+       list.add(new Student("Ivo", 23));
+       list.add(new Student("Huang Zichang", 26));
+       list.add(new Student("Zhong Yihao", 27));
+       list.add(new Student("Tudi", 24));
+       list.add(new Student("Covic", 33));
+       return list;
+   }
+   
+   //方式1：通过集合
+   @Test
+   public void test1() {
+       List<Student> list = getList();
+       Stream<Student> stream1 = list.stream();
+       Stream<Student> stream2 = list.parallelStream();
+   }
+   
+   //方式2：通过数组
+   @Test
+   public void test2() {
+       Integer[] arr = new Integer[]{1, 2, 3, 4, 5};
+       Stream<Integer> stream = Arrays.stream(arr);
+   
+       int[] arr1 = new int[]{1, 2, 3, 4, 5};
+       IntStream stream1 = Arrays.stream(arr1);
+   }
+   
+   //方式3：通过Stream的of()
+   @Test
+   public void test3() {
+       Stream<String> stream = Stream.of("AA", "BB", "CC", "SS");
+   }
+   ```
+
+2. 一系列的中间操作
+
+3. 执行终止操作
