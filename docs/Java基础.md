@@ -1,4 +1,4 @@
-# Java基础
+Java基础
 
 ## 基础
 
@@ -462,6 +462,112 @@ try {
 - 我们更关心的是，通过异常的名称就能直接判断此异常出现的原因；
 - 既然如此，我们就有必要再实际开发场景中，不满足我们指定的条件时，指明我们自己特有的异常类；
 - 通过此异常类的名称，就能判断出具体出现的问题。
+
+## Java比较器
+
+### 1. 自然排序
+
+**实现步骤**：
+
+1. 具体的类A实现`Comparable`接口；
+2. 重写`Comparable`接口中的`compareTo(Object obj)`方法，在此方法中指明比较类A的对象的大小的标准；
+3. 创建类A的多个实例，进行大小的比较或排序。
+
+**示例**：
+
+```java
+public class EmployeeSortTest {
+    public static void main(String[] args) {
+        Employee[] staff = new Employee[3];
+        staff[0] = new Employee("Ivo10",2000);
+        staff[1] = new Employee("Huang Zichang",1000);
+        staff[2] = new Employee("Zhong Yihao",3000);
+
+        Arrays.sort(staff);
+        System.out.println(Arrays.toString(staff));
+    }
+}
+
+class Employee implements Comparable<Employee>{
+    private String name;
+    private double salary;
+
+    public Employee(String name, double salary) {
+        this.name = name;
+        this.salary = salary;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public void setSalary(double salary) {
+        this.salary = salary;
+    }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "name='" + name + '\'' +
+                ", salary=" + salary +
+                '}';
+    }
+
+
+    @Override
+    public int compareTo(Employee o) {
+        return Double.compare(salary, o.salary);
+    }
+}
+```
+
+### 2. 定制排序
+
+**实现步骤**
+
+1. 创建一个实现了`Comparator`接口的实现类A；
+2. 实现类A要求重写`Comparator`接口的抽象方法`compare(Object o1, Object o2)`，在此方法中指明要比较大小的对象的比较规则（如`String`类，`Product`类）；
+3. 创建此实现类A的对象，并将此对象传入到相关方法的参数位置即可（如`Arrays.sort(..., 类A的实例)`）
+
+**示例**
+
+```java
+public class LengthComparatorTest {
+    public static void main(String[] args) {
+        String[] players = new String[]{"HuangZichang", "Ivo", "Covic"};
+        Arrays.sort(players, new LengthComparator());
+        System.out.println(Arrays.toString(players));
+    }
+}
+
+class LengthComparator implements Comparator<String> {
+
+    @Override
+    public int compare(String o1, String o2) {
+        return o1.length() - o2.length();
+    }
+}
+```
+
+### 3. 二者对比
+
+1. **角度一**
+   - 自然排序：单一的，唯一的
+   - 定制排序：灵活的，多样的
+2. **角度二**
+   - 自然排序：一劳永逸的
+   - 定制排序：临时的
+3. **细节**
+   - 自然排序：对应的接口是`Comparable`，对应的抽象方法是`compareTo(Object obj)`
+   - 定制排序：对应的接口是`Comparator`，对应的抽象方法是`compare(Object obj1, Object obj2)`
 
 ## 日期时间API
 
@@ -1152,21 +1258,94 @@ System.out.println(arr1Class == arr2Class); //只要元素类型和维度一样�
 
 #### 1.3 函数式接口
 
-- 函数式接口：接口中只声明有一个抽象方法，则此接口就称为函数式接口‘
+- 函数式接口：接口中**只声明有一个抽象方法**，则此接口就称为函数式接口
 - 只有给函数式提供实现类对象时，才可以使用lambda表达式；
 
 - API中函数式接口所在的包：`java.util.function`包下
 
 **4个基本的函数式接口**：
 
-![image-20231029200626976](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20231029200626976.png)
+| 函数式接口       | 称谓       | 参数类型 | 用途                                                         |
+| ---------------- | ---------- | -------- | ------------------------------------------------------------ |
+| `Consumer<T>`    | 消费型接口 | `T`      | 对类型为T的对象应用操作，包含方法：`void accept(T t)`        |
+| `Supplier<T>`    | 供给型接口 | 无       | 返回类型为T的对象，包含方法：`T get()`                       |
+| `Function<T, R>` | 函数型接口 | `T`      | 对类型为T的对象应用操作，并返回结果。结果是R类型的对象。包含方法：`R apply(T t)` |
+| `Predicate<T>`   | 判断型接口 | `T`      | 确定类型为T的对象是否满足某约束，并返回`boolean`值。包含方法：`boolean test(T t)` |
 
 #### 1.4 具体使用情况说明
 
 ```java
+//语法格式1：无参，无返回值
+@Test
+public void test() {
+    Runnable r1 = new Runnable() {
+        @Override
+        public void run() {
+            System.out.println("我爱北京天安门");
+        }
+    };
+    r1.run();
+
+    Runnable r2 = () -> {
+        System.out.println("我爱北京天安门");
+    };
+    r2.run();
+}
+
+//语法格式二：Lambda需要一个参数，但是没有返回值
+@Test
+public void test2() {
+    Consumer<String> con = new Consumer<String>() {
+        @Override
+        public void accept(String s) {
+            System.out.println(s);
+        }
+    };
+    con.accept("hahaha");
+
+    Consumer<String> con1 = (String s) -> {
+        System.out.println(s);
+    };
+    con1.accept("666");
+}
+
+//语法格式三：数据类型可以省略，因为可由编译器推断得出，称为“类型推断”
+//语法格式四：Lambda表达式若只需要一个参数时，参数的小括号可以省略
+public void test3() {
+    Consumer<String> con1 = s -> {
+        System.out.println(s);
+    };
+    con1.accept("666");
+}
+
+//语法格式五：Lambda表达式需要两个或两个以上参数，多条执行语句，并且可以有返回值
+@Test
+public void test4() {
+    Comparator<Integer> com1 = new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            System.out.println(o1);
+            System.out.println(o2);
+            return o1.compareTo(o2);
+        }
+    };
+    System.out.println(com1.compare(12, 23));
+
+    Comparator<Integer> com2 = (o1, o2) -> {
+        System.out.println(o1);
+        System.out.println(o2);
+        return o1.compareTo(o2);
+    };
+    System.out.println(com2.compare(12, 23));
+}
+
+//语法格式六：当Lambda体只有一条语句时，return与大括号若有，都可以省略
+@Test
+public void test5() {
+    Comparator<Integer> com = (o1, o2) -> o1.compareTo(o2);
+    System.out.println(com.compare(1, 2));
+}
 ```
-
-
 
 ### 2. 方法引用和构造器引用
 
@@ -1371,4 +1550,10 @@ BiFunction<Integer, String, Employee> func2 = Employee::new;
 
 2. 一系列的中间操作
 
+   - 每次处理都会返回一个持有结果的新的Stream，即中间操作的方法返回值仍然是Stream类型的对象，因此中间操作可以是个**操作链**，可对数据源的数据进行n次处理；
+
 3. 执行终止操作
+
+#### 3.3 使用说明
+
+![image-20231031161122819](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20231031161122819.png)
