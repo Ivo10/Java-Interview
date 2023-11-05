@@ -4,7 +4,7 @@
 
 ### 1.1 初识Spring
 
-![](../assets/1629714811435.png)
+![](../../assets/1629714811435.png)
 
 - Spring FrameWork：Spring框架，是Spring中最早最核心的技术，也是所有其他技术的基础；
 - SpringBoot：Spring是来简化开发，而SpringBoot是来帮助Spring在简化的基础上能更快速进行开发；
@@ -12,7 +12,7 @@
 
 ### 1.2 Spring系统架构
 
-![](../assets/1629720945720.png)
+![](../../assets/1629720945720.png)
 
 - 核心层
   - Core Container：核心容器，这个模块是Spring最核心的模块，其他的都需要依赖该模块
@@ -34,14 +34,14 @@
 
 目前项目中存在的问题：**耦合度偏高**
 
-![](../assets/1629723232339.png)
+![](../../assets/1629723232339.png)
 
 - 业务层需要调用数据层的方法，就需要在业务层new数据层的对象；
 - 如果数据层的实现类发生变化，那么业务层的代码也需要跟着改变，发生变更后，都需要进行编译打包和重部署。
 
 **解决办法1：**
 
-![](../assets/1629724206002.png)
+![](../../assets/1629724206002.png)
 
 **不可行**，会报空指针异常（`NullPointerException`）
 
@@ -105,8 +105,7 @@
 | 类型     | 标签                                                         |
 | 所属     | beans标签                                                    |
 | 功能     | 定义Spring核心容器管理的对象                                 |
-| 属性列表 | id：bean的id，使用容器可以通过id值获取对应的bean，在一个容器中id值唯一 |
-|          | class：bean的类型，即配置的bean的全路径类名                  |
+| 属性列表 | id：bean的id，使用容器可以通过id值获取对应的bean，在一个容器中id值唯一 <br>class：bean的类型，即配置的bean的全路径类名 |
 
 **示例**
 
@@ -117,7 +116,7 @@
 
 **注意**
 
-- class属性不能写接口如`BookDao`的类全名，因为接口是没办法创建对象的；
+- class属性**不能写接口如`BookDao`的类全名**，因为接口是没办法创建对象的；
 
 #### 3.1.2 name属性
 
@@ -131,14 +130,14 @@
 
 - 注意：bean依赖注入的ref属性指定bean，必须在容器中存在
 
-  ![](../assets/1629771744003.png)
+  ![](../../assets/1629771744003.png)
 
 #### 3.1.3 scope属性
 
 - 功能：定义bean的作用范围
 
-  - singleton：单例（默认）
-  - prototype：非单例
+  - `singleton`：单例（默认）
+  - `prototype`：非单例
 
 - 示例：
 
@@ -154,22 +153,22 @@
   <bean id="bookDao" class="com.buaa.dao.impl.BookDaoImpl" scope="prototype"/> <!--配置非单例,2次地址不一样-->
   ```
 
-  <img src="../assets/Snipaste_2023-11-02_11-24-37.png" style="zoom:50%;" />
+  <img src="../../assets/Snipaste_2023-11-02_11-24-37.png" style="zoom:50%;" />
 
   ```xml
   <bean id="bookDao" class="com.buaa.dao.impl.BookDaoImpl"/> <!--默认单例,2次地址一样-->
   ```
 
-  <img src="../assets/Snipaste_2023-11-02_11-26-56.png" style="zoom:50%;" />
+  <img src="../../assets/Snipaste_2023-11-02_11-26-56.png" style="zoom:50%;" />
 
   **注意**：
 
   - **无状态Bean**：如果bean是无状态的，即不含有可变的实例变量（成员变量），那么它通常是线程安全的。这样的bean仅仅包含不变的数据和方法，不依赖于特定的状态；
-  - **有状态Bean**： 如果bean包含有可变的实例变量，那么就可能存在线程安全问题。当多个线程同时访问并操作这些变量时，可能会导致不一致的状态或其他线程安全问题。
+  - **有状态Bean**： 如果bean包含有可变的实例变量，那么就可能存在线程安全问题。当多个线程同时访问并操作这些变量时，可能会导致不一致的状态或其他线程安全问题。（ChatGPT）
 
 #### 3.1.4 小结
 
-![](../assets/1631529887695.png)
+![](../../assets/1631529887695.png)
 
 ### 3.2 bean实例化
 
@@ -205,8 +204,8 @@ public class BookDaoImpl implements BookDao {
 
 **结论**：
 
-- Spring内部走的是构造函数，并且能访问到类中的**私有**构造方法，因为Spring底层用的是反射；
-- Spring底层使用的是类的**无参**构造方法；
+- Spring内部走的是构造函数，并且**能访问到类中的私有构造方法**，因为Spring底层用的是反射；
+- Spring底层使用的是**类的无参构造方法**；
 
 #### 3.2.2 静态工厂实例化（了解即可）
 
@@ -291,7 +290,7 @@ public class AppForInstanceUser {
 }
 ```
 
-![](../assets/image-20210729200203249.png)
+![](../../assets/image-20210729200203249.png)
 
 - 第一行：创建实例化工厂
 - 第二行：调用对象中的方法来创建bean
@@ -442,7 +441,7 @@ public class BookDaoImpl implements BookDao {
     }
 
     public void save() {
-        System.out.println("book dao save ..."+databaseName+","+connectionNum);
+        System.out.println("book dao save ..." + databaseName + "," + connectionNum);
     }
 }
 ```
@@ -581,7 +580,7 @@ public class BookDaoImpl implements BookDao {
 
 #### 6.1.1 容器创建方式
 
-ApplicationContext的创建方式为
+`ApplicationContext`的创建方式为
 
 ```java
 ApplicationConext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
@@ -591,7 +590,7 @@ ApplicationConext ctx = new ClassPathXmlApplicationContext("applicationContext.x
 
 #### 6.1.2 Bean的三种获取方式
 
-调用getBean()方法
+调用`getBean()`方法
 
 ```java
 BookDao bookDao = (BookDao) ctx.getBean("bookDao");
@@ -601,7 +600,7 @@ BookDao bookDao = ctx.getBean(BookDao.class);
 
 #### 6.1.3 容器类层次结构
 
-![](../assets/1629984980781.png)
+![](../../assets/1629984980781.png)
 
 使用BeanFactory创建IOC容器的具体实现方式为：
 
@@ -618,8 +617,8 @@ public class AppForBeanFactory {
 
 其中：
 
-- 使用BeanFactory创建的容器是延迟加载，只有在获取bean对象的时候才会去创建；
-- 使用ApplicationContext创建的容器是立即加载，容器加载的时候就会创建bean对象
+- 使用`BeanFactory`创建的容器是延迟加载，只有在获取bean对象的时候才会去创建；
+- 使用`ApplicationContext`创建的容器是立即加载，容器加载的时候就会创建bean对象
 
 ## 七、IOC/DI注解开发
 
@@ -731,7 +730,7 @@ public class BookDaoImpl implements BookDao {
 
 #### 7.2.4 小结
 
-![](../assets/1630033039358.png)
+![](../../assets/1630033039358.png)
 
 ### 7.3 注解开发依赖注入
 
@@ -766,11 +765,11 @@ public class BookServiceImpl implements BookService {
 
 **说明**
 
-- 为什么setter方法可以删除？自动装配基于反射设计创建对象并通过暴力反射为私有属性进行设值，所以此处无需提供setter方法；
+- 为什么setter方法可以删除？**自动装配基于反射设计创建对象并通过暴力反射为私有属性进行设值，所以此处无需提供setter方法；**
 
 - `@Autowired`**默认按照类型自动装配**，如果IOC容器中同类的Bean找到多个，就按照变量名和Bean的名称匹配；
 
-  ![](../assets/1630036236150.png)
+  ![](../../assets/1630036236150.png)
 
   上述情况按照类型会找到2个Bean对象，此时按照名称取找，但IOC容器只有名称叫`bookDao1`和`bookDao2`,所以找不到，报`NoUniqueBeanDefinitionException`;
 
@@ -800,7 +799,7 @@ public class BookServiceImpl implements BookService {
 ```
 
 - 在容器中按照类型找到多个Bean对象，使用`@Qualifier`来指定注入哪个名称的bean对象；
-- @Qualifier不能独立使用，必须**和@Autowired一起使用**
+- `@Qualifier`不能独立使用，必须**和`@Autowired`一起使用**
 
 #### 7.3.3 @Value
 
@@ -863,7 +862,7 @@ public class SpringConfig {
 
 **缺点**：所有的第三方bean都配置到Spring的配置类SpringConfig中，不利于代码的阅读和分类管理
 
-#### 8.1.2 具体流程
+#### 8.1.2 @Bean
 
 | 名称 | @Bean                                  |
 | ---- | -------------------------------------- |
@@ -931,3 +930,11 @@ public class SpringConfig {
 | 位置 | 类定义上方                                                   |
 | 作用 | 导入配置类                                                   |
 | 属性 | value（默认）：定义导入的配置类类名，<br/>当配置类有多个时使用数组格式一次性导入多个配置类 |
+
+## 九、Spring整合
+
+### 9.1 Spring整合Mybatis
+
+- SqlSessionFactoryBean
+- MapperScannerConfigurer
+
