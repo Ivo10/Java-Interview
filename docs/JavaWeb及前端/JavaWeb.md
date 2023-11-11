@@ -121,17 +121,17 @@
 
 - 快速入门案例
 
-  - 创建web项目，导入Servlet依赖坐标；
+  - 创建**web项目**，导入Servlet依赖坐标；
 
     ```xml
     <dependencies>
         <dependency>
-          <groupId>javax.servlet</groupId>
-          <artifactId>javax.servlet-api</artifactId>
-          <version>3.1.0</version>
-          <scope>provided</scope> <!--Web服务器通常已经提供了Servlet API的实现-->
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope> <!--Web服务器通常已经提供了Servlet API的实现-->
         </dependency>
-      </dependencies>
+    </dependencies>
     ```
 
   - 创建：定义一个类，实现Servlet接口，并重写接口中所有方法，并在service方法中输入一句话；
@@ -335,9 +335,9 @@
   ```
 
 
-### 2.3 Request获取请求数据
+### 3.3 Request获取请求数据
 
-#### 2.3.1 请求行
+#### 3.3.1 请求行
 
 ```http
 GET /request-demo/req1?username=zhangsan HTTP/1.1
@@ -347,11 +347,11 @@ GET /request-demo/req1?username=zhangsan HTTP/1.1
 
 - `String getContextPath()`：获取虚拟目录（项目访问路径），/request-demo
 
-- `String Buffer getRequestURL()`：获取URL（统一资源定位符），http://localhost:8080/request-demo/req1
+- `StringBuffer getRequestURL()`：获取URL（统一资源定位符），http://localhost:8080/request-demo/req1
 
   ![image-20231109101006759](C:\Users\Xiong Wei\AppData\Roaming\Typora\typora-user-images\image-20231109101006759.png)
 
-#### 2.3.4 通用方式获取请求参数（GET/POST均可）
+#### 3.3.4 通用方式获取请求参数（GET/POST均可）
 
 ![](../../assets/Snipaste_2023-11-09_10-27-26.png)
 
@@ -369,7 +369,7 @@ GET /request-demo/req1?username=zhangsan HTTP/1.1
   }
   ```
 
-- `string[] getParameterValues(String name)`：根据名称获取参数值（数组）
+- `String[] getParameterValues(String name)`：根据名称获取参数值（数组）
 
   ```java
   String[] hobbies = req.getParameterValues("hobby");
@@ -387,7 +387,7 @@ GET /request-demo/req1?username=zhangsan HTTP/1.1
 
 ![](../../assets/Snipaste_2023-11-09_10-29-47.png)
 
-#### 2.3.5 解决中文乱码
+#### 3.3.5 解决中文乱码
 
 - 请求参数中如果存在中文数据，则会乱码
 
@@ -403,7 +403,7 @@ GET /request-demo/req1?username=zhangsan HTTP/1.1
 
     - 乱码原因：
 
-### 2.4 Request请求转发
+### 3.4 Request请求转发
 
 - 请求转发（forward）：一种在服务器内部的资源跳转方式
 
@@ -453,3 +453,158 @@ public class RequestDemo6 extends HttpServlet {
 }
 ```
 
+## 四、Mybatis
+
+### 4.1 Mybatis简介
+
+- MyBatis是一款优秀的**持久层框架**，用于简化JDBC开发
+- **持久层**
+  - 负责将数据保存到数据库的那一层diamagnetic
+  - JavaEE三层架构：表现层，业务层，持久层
+- **框架**
+  - 框架就是一个半成品软件，是一套可重用的、通用的、软件基础代码模型
+  - 在框架的基础之上构建软件编写更加高效、规范、通用、可扩展
+
+### 4.2 快速入门
+
+#### 4.2.1 创建user表，添加数据
+
+```mysql
+CREATE DATABASE mybatis;
+
+use mybatis;
+
+create table tb_user(
+	id INT primary key auto_increment,
+	username VARCHAR(20),
+	password VARCHAR(20),
+	gender char(1),
+	addr varchar(30)
+);
+
+INSERT INTO tb_user values(1, 'zhangsan', '123','男','北京');
+INSERT INTO tb_user values(2, '李四', '234','女','天津');
+INSERT INTO tb_user values(3, '王五', '11','男','西安');
+```
+
+#### 4.2.2 创建模块，导入坐标
+
+```xml
+<dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis</artifactId>
+    <version>3.5.5</version>
+</dependency>
+
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.46</version>
+</dependency>
+```
+
+#### 4.2.3 编写MyBatis核心配置文件
+
+替换连接信息，解决硬编码问题——**官网CV，手动改**
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql:///mybatis?useSSL=false"/>
+                <property name="username" value="root"/>
+                <property name="password" value="xw20000826"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="UserMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+#### 4.2.4 编写SQL映射文件
+
+官网CV
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="test">
+    <select id="selectAll" resultType="com.buaa.pojo.User">
+        select * from tb_user;
+    </select>
+</mapper>
+```
+
+#### 4.2.5 编码
+
+1. 定义POJO类
+
+   代码略
+
+2. 加载核心配置文件，获取SqlSessionFactory对象
+
+3. 获取SqlSession对象，执行SQL语句
+
+4. 释放资源
+
+   ```java
+   String resource = "mybatis-config.xml";
+   InputStream inputStream = Resources.getResourceAsStream(resource);
+   SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+   
+   SqlSession sqlSession = sqlSessionFactory.openSession();
+   List<User> users = sqlSession.selectList("test.selectAll");
+   
+   System.out.println(users);
+   
+   sqlSession.close();
+   ```
+
+### 4.3 Mapper代理开发
+
+- 定义与映射文件同名的Mapper接口，并且将Mapper接口和SQL映射文件放置在同一目录下；
+
+  - resources目录下创建多层目录结构，要用'/'作为分割；
+
+- 设置SQL映射文件的namespace属性位Mapper接口全限定名；
+
+- 在Mapper接口中定义方法，方法名就是SQL映射文件中sql语句的id，并保持参数类型和返回值类型一致；
+
+  ```xml
+  <mapper namespace="com.buaa.mapper.UserMapper">
+      <select id="selectAll" resultType="com.buaa.pojo.User">
+          select * from tb_user;
+      </select>
+  </mapper>
+  ```
+
+- 编码
+
+  - 通过SqlSession的`getMapper()`获取Mapper接口的代理对象
+
+  - 调用对应方法完成sql的执行
+
+    ```java
+    String resource = "mybatis-config.xml";
+    InputStream inputStream = Resources.getResourceAsStream(resource);
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+    
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    
+    UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+    List<User> userList = userMapper.selectAll();
+    System.out.println(userList);
+    ```
+
+### 4.4 
