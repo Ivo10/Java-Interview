@@ -4,13 +4,6 @@
 
 ### @Value
 
-| 名称 | @Value                                               |
-| ---- | ---------------------------------------------------- |
-| 类型 | 属性注解  或  方法注解（了解）                       |
-| 位置 | 属性定义上方  或  标准set方法上方  或  类set方法上方 |
-| 作用 | 为  **基本数据类型**  或  **字符串类型**  属性设置值 |
-| 属性 | value（默认）：要注入的属性值                        |
-
 ### @ConfigurationProperties
 
 ## IOC/DI相关
@@ -24,3 +17,31 @@
 ### @Configuration
 
 ### @Import
+
+## SpringMVC相关
+
+### @RestController
+
+### @RequestMapping
+
+### @RequestBody
+
+## lombok相关
+
+### @Data
+
+### @NoArgsConstructor
+
+### @AllArgsConstructor
+
+## 参数校验
+
+### @Pattern
+
+### @Validated
+
+## 全局异常处理
+
+### @RestControllerAdvice
+
+### @ExceptionHandler

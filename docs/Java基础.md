@@ -2,19 +2,32 @@
 
 ## 基础
 
+### JDK VS JRE VS JVM
+
+- **JDK（Java Development Kit）**
+  - 提供给开发者使用的，能够创建和编译 Java 程序。**JDK是用于支持Java程序开发的最小环境；**
+  - 包含了JRE，同时还包含了编译 java 源码的编译器 javac 以及一些其他工具，如 javadoc（文档注释工具）、jdb（调试器）、jconsole（基于 JMX 的可视化监控⼯具）、javap（反编译工具）等等；
+- **JRE（Java Runtime Environment） **
+  - **支持Java程序运行的标准环境**
+  - 仅包含 Java 应用程序的运行时环境和必要的类库
+- **JVM（Java Virtual Machine）**
+  - Java虚拟机，用于运行Java程序（Java跨平台的工作原理，编译的Java程序可以运行在不同平台的JVM虚拟机中
+
+<img src="../assets/Snipaste_2023-11-13_11-29-26.png" style="zoom:80%;" />
+
 ### 整型数据类型
 
-| 类型  | 存储需求 | 取值范围                                             |
-| ----- | -------- | ---------------------------------------------------- |
-| byte  | 1字节    | -128~127                                             |
-| short | 2字节    | -32768~32767                                         |
-| int   | 4字节    | -2 147 483 648~2 147 483 647（刚刚超过20亿）         |
-| long  | 8字节    | -9 223 372 036 854 775 808~9 223 372 036 854 775 807 |
+| 类型    | 存储需求 | 取值范围                                             |
+| ------- | -------- | ---------------------------------------------------- |
+| `byte`  | 1字节    | -128~127                                             |
+| `short` | 2字节    | -32768~32767                                         |
+| `int`   | 4字节    | -2 147 483 648~2 147 483 647（刚刚超过20亿）         |
+| `long`  | 8字节    | -9 223 372 036 854 775 808~9 223 372 036 854 775 807 |
 
 **注意**
 
-- 整型的范围和运行Java代码的平台无关（区别于C和C++，在16位、32位、64位处理器中位数不同）
-- Java没有任何无符号（unsigned）形式的byte、short、int、long
+- Java 的每种基本类型所占存储空间的大小不会像其他大多数语言那样随机器硬件架构的变化而变化。这种所占存储空间大小的不变性是 Java 程序比用其他大多数语言编写的程序更具可移植性的原因之一；
+- Java**没有任何无符号（`unsigned`）形式**的byte、short、int、long
 
 ### 方法重载
 
@@ -270,11 +283,13 @@ public class TestChinese {
 
 - `java.lang.Throwable`：异常体系的根父类
 
-  - `java.lang.Error`：错误，Java虚拟机无法解决的严重问题。如：JVM系统内部错误、资源耗尽等严重情况，一般不编写针对性的代码进行处理。如：`StackOverflowError`、`OutofMemoryError`
-  - `java.lang.Exception`：异常，我们可以编写针对性的代码进行处理
-    - 编译时异常（受检异常）：在执行`javac.exe`命令时，出现的异常（编译时异常并不代表所有在编译时出现的错误或异常，而是指在Java中需要明确捕获或抛出的异常类型）
-    - 运行时异常（非受检异常）：在执行`java.exe`命令时，出现的异常
+  - `java.lang.Error`：**错误**，Java虚拟机无法解决的严重问题。如：JVM系统内部错误、资源耗尽等严重情况，一般不编写针对性的代码进行处理。如：**`StackOverflowError`**、**`OutofMemoryError`**
+  - `java.lang.Exception`：**异常**，我们可以编写针对性的代码进行处理
+    - 编译时异常（**受检异常**）：在执行`javac.exe`命令时，出现的异常（编译时异常并不代表所有在编译时出现的错误或异常，而是指在Java中**需要明确捕获或抛出的异常类型**）
+    - 运行时异常（**非受检异常**）：在执行`java.exe`命令时，出现的异常（`RunTimeException`及其所有子类）
       - `ArrayIndexOutofBoundsException`、`NullPointerException`、`ClassCastException`、`NumberFormatException`、`InputMismatchException`、`ArithmeticException`
+
+  <img src="https://oss.javaguide.cn/github/javaguide/java/basis/types-of-exceptions-in-java.png" style="zoom: 67%;" />
 
 - **面试题：说一说开发中都遇到过哪些异常**
 
@@ -327,7 +342,7 @@ public class TestChinese {
 
 ### 2. 异常处理方式
 
-#### 2.1 异常处理方式1：try-catch-finally
+#### 2.1 异常处理方式1：`try-catch-finally`
 
 - 抛：程序在执行的过程当中，一旦出现异常，就会在出现异常的代码处，**生成对应异常类的对象，并将此对象抛出**。一旦抛出，此程序就不执行其后的代码了；
 - 针对于“抓”中抛出的异常对象，进行捕获处理。此捕获处理过程，就成为抓。一旦将异常进行了处理，代码就可以继续执行。
@@ -346,11 +361,11 @@ try {
 
 **注意**：
 
-- 如果声明了多个catch结构，且多个异常类型满足**子父类的关系**。则必须将子类声明在父类结构的上面，否则报错
+- 如果声明了多个catch结构，且多个异常类型满足**子父类的关系**。则必须**将子类异常声明在父类结构的上面**，否则报错
 - catch中的异常处理方式：
   - `printStackTrace()`：打印异常的详细信息
   - `getMessage()`：获取发生异常的原因
-- try中声明的变量，除了try结构之后，就不可以进行调用了；
+- try中声明的变量，出了try结构之后，就不可以进行调用了；
 
 #### 2.2 finally的使用说明
 
@@ -370,7 +385,7 @@ try {
       e.printStackTrace();
       System.out.println(1 / 0);
   } finally {
-      System.out.println("程序结束"); // catch块中又抛了一个异常，但finnally中的“程序结束”依然会被打印
+      System.out.println("程序结束"); // catch块中又抛了一个异常，但finally中的“程序结束”依然会被打印
   }
   ```
 
@@ -413,7 +428,7 @@ try {
 
   参考博客：[try-catch-finally的深入理解](https://blog.csdn.net/weixin_47382783/article/details/125241849)
 
-#### 2.3 异常处理方式2：throws
+#### 2.3 异常处理方式2：`throws`
 
 - 从编译是否能通过讲，看成是给出了异常万一要是出现时候的解决方案。此方案就是继续向上抛出（`throws`）；
 
@@ -449,9 +464,9 @@ try {
 - 开发中如何选择？
   - 程序中涉及到资源的调用（流、数据库连接、网络连接），使用`try-catch-finally`处理；
   - 父类没有`throws`异常，那么子类重写的方法如果出现异常，只能使用`try-catch-finally`处理；
-  - 方法a依次调用了方法b、c、d，方法b、c、d之间是递进关系。如果方法b、c、d中有异常，通常选择使用`throws`，方法a中使用`try-catch-finally`。
+  - 方法`a`依次调用了方法`b`、`c`、`d`，方法`b`、`c`、`d`之间是递进关系。如果方法`b`、`c`、`d`中有异常，通常选择使用`throws`，方法a中使用`try-catch-finally`。
 
-### 3. 手动抛出异常对象：throw
+### 3. 手动抛出异常对象：`throw`
 
 - **手动抛**：程序在执行的过程当中，不满足指定条件的情况下，使用`throw + 异常类对象`方式抛出异常；
 - `throw`后的代码不能被执行，编译不通过；
@@ -462,9 +477,9 @@ try {
 
 **如何自定义异常类？**
 
-1. 继承于现有的异常体系，通常继承于`RuntimeException` \ `Exception`；
-2. 通常提供几个重载的构造器；
-3. 提供一个全局常量，声明为`static final long serialVersionUID`
+1. **继承于现有的异常体系**，通常继承于`RuntimeException` \ `Exception`；
+2. 通常**提供几个重载的构造器；**
+3. **提供一个全局常量**，声明为`static final long serialVersionUID`
 
 **如何使用自定义异常类？**
 
@@ -1047,8 +1062,8 @@ public void copyFileWithBufferedStream(String str, String dest) {
 
 - 对象序列化机制允许把内存中的Java对象转换成平台无关的二进制流，从而允许把这种二进制流持久地保存在磁盘上，或通过网络将沼泽中二进制流传输到另一个网络节点；
 - 当其他程序获取了这种二进制流，就可以恢复成原来的Java对象；
-- **序列化过程**：使用`ObjectOutputStream`流实现，将内存中的Java对象保存在文件中或通过网络传输出去；
-- **反序列化过程**：使用`ObjectInputStream`流实现，将文件中或网络传输过来的数据还原为内存中的Java对象。
+- **序列化过程**：**将数据结构或对象转换成二进制字节流**，使用`ObjectOutputStream`流实现，将内存中的Java对象保存在文件中或通过网络传输出去；
+- **反序列化过程**：**将在序列化过程中所生成的二进制字节流转换成数据结构或者对象**，使用`ObjectInputStream`流实现，将文件中或网络传输过来的数据还原为内存中的Java对象；
 
 - **举例**：
 
@@ -1084,7 +1099,7 @@ public void copyFileWithBufferedStream(String str, String dest) {
 
 - 自定义类需要实现接口`Serializable`；
 
-- 要求自定义类声明一个全局常量：`static final long serialVersionUID`，权限随意；
+- 要求自定义类声明一个全局常量：`static final long serialVersionUID`，权限随意（起到版本控制的作用）；
 
 - 要求自定义类的各个属性也必须是可序列化的：
   - 基本数据类型的属性：默认就是可序列化的；
@@ -1093,7 +1108,7 @@ public void copyFileWithBufferedStream(String str, String dest) {
 - **注意点**
   
   - 如果不声明全局常量`serialVersionUID`，系统会自动生成一个针对于当前类的`serialVersionUID`；如果修改此类，会导致`serialVersionUID`变化，进而导致反序列化时，会出现`java.io.InvalidClassException`
-  - **类中的属性如果声明为`transient`或`static`，则不会实现序列化（该属性不会保存在文件中）**
+  - **类中的属性如果声明为`transient`或`static`，则不会实现序列化（该属性不会保存在文件中，反序列化的时候就读不到了）**
   
 - 例子：
 
@@ -1164,8 +1179,6 @@ public void copyFileWithBufferedStream(String str, String dest) {
 - 通过调用如下的方法，修改输入流和输出流的位置：
   - `setIn(InputStream is)`
   - `setOut(PrintStream ps)`
-
-#### 9.3 Stream 
 
 ## 反射
 
