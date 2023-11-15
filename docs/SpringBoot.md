@@ -206,3 +206,66 @@ public class EnterPrise {
 }
 ```
 
+## 三、
+
+### 3.1 JWT
+
+- 全称：JSON Web Token
+- 定义了一种简介的、自包含的格式，用于通信双方以json数据格式安全地传输信息；
+- 组成
+  - Header，记录令牌类型、签名算法等；
+  - Payload：携带一些自定义信息、默认信息等；
+  - Signature：防止 Token被篡改，确保安全性。将header、payload，并加入指定密钥，通过指定签名算法计算而来
+
+![](../assets/Snipaste_2023-11-15_19-54-45.jpg)
+
+> 签名的目的就是为了防jwt令牌被篡改，而正是因为jwt令牌最后一个部分数字签名的存在， 所以整个jwt令牌是非常安全可靠的。一旦jwt令牌当中任何一个部分、任何一个字符被篡改了，整个令牌在校验的时候都会失败，所以它是非常安全可靠的。
+
+### 3.2 登录认证
+
+#### 3.2.1 拦截器Interceptor
+
+- **定义拦截器**：自定义类实现`HandlerInterceptor`接口，重写其方法
+
+  - `preHandle`方法：目标资源方法执行前执行。 返回true：放行 返回false：不放行
+  - `postHandle`方法：目标资源方法执行后执行
+  - `afterCompletion`方法：视图渲染完毕后执行，最后执行
+
+  ```java
+  @Component
+  public class LoginInterceptor implements HandlerInterceptor {
+      @Override
+      public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+          System.out.println("preHandle");
+          String token = request.getHeader("authorization");
+          try {
+              JwtUtils.parseToken(token);
+              // 放行
+              return true;
+          } catch (Exception e) {
+              response.setStatus(401);
+              // 不放行
+              return false;
+          }
+      }
+  }
+  ```
+
+  
+
+- **注册配置拦截器**：实现`WebMvcConfigurer`接口，并重写`addInterceptors`方法
+
+  ```java
+  @Configuration
+  public class WebConfig implements WebMvcConfigurer {
+      @Autowired
+      private LoginInterceptor loginInterceptor;
+  
+      @Override
+      public void addInterceptors(InterceptorRegistry registry) {
+          registry.addInterceptor(loginInterceptor).excludePathPatterns("/user/login","/user/register");
+      }
+  }
+  ```
+
+- 配置多个拦截器，拦截器的顺序：以注册配置的顺序为拦截顺序
