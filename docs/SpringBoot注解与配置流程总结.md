@@ -137,3 +137,48 @@ public class GlobalExceptionHandler {
 
 ## 拦截器相关
 
+### 定义拦截器
+
+自定义类实现**`HandlerInterceptor`**接口，重写其方法（类上需要加`@Component`注解）
+
+- `preHandle`方法：目标资源方法执行前执行。 返回true：放行 返回false：不放行
+- `postHandle`方法：目标资源方法执行后执行
+- `afterCompletion`方法：视图渲染完毕后执行，最后执行
+
+```java
+@Component
+public class LoginInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("preHandle");
+        String token = request.getHeader("authorization");
+        try {
+            JwtUtils.parseToken(token);
+            // 放行
+            return true;
+        } catch (Exception e) {
+            response.setStatus(401);
+            // 不放行
+            return false;
+        }
+    }
+}
+```
+
+### 注册配置拦截器
+
+实现`WebMvcConfigurer`接口，并重写`addInterceptors`方法
+
+```java
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Autowired
+    private LoginInterceptor loginInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(loginInterceptor).excludePathPatterns("/user/login","/user/register");
+    }
+}
+```
+
