@@ -70,7 +70,7 @@
 
 ### 包装类
 
-#### Integer的享元机制
+#### Integer的缓存机制
 
 ```java
 Integer a = 100;

@@ -111,6 +111,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = new Employee();
         employee.setStatus(status);
         employee.setId(id);
+        employee.setUpdateTime(LocalDateTime.now());
 
         employeeMapper.update(employee);
     }
