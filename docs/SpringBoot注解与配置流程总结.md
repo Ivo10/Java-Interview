@@ -1,8 +1,15 @@
 # SpringBoot注解总结
 
-## 读取配置文件相关
+## 读取配置相关
 
 ### @Value
+
+```java
+@Value("${server.port}")
+Integer port;
+```
+
+
 
 ### @ConfigurationProperties
 
@@ -12,6 +19,14 @@
 
 ### @Qualifier
 
+### @Component
+
+### @Repository
+
+### @Service
+
+### @Controller
+
 ## 配置相关
 
 ### @Configuration
@@ -20,11 +35,13 @@
 
 ## SpringMVC相关
 
-### @RestController
+### @RestController = @Controller + @ResponseBody
 
 ### @RequestMapping
 
 ### @RequestBody
+
+### @GetMapping、@PostMapping、@DeletMapping、@PutMapping
 
 ## lombok相关
 
@@ -101,7 +118,7 @@ public class GlobalExceptionHandler {
 | 位置 | 专用于异常处理的控制器方法上方                               |
 | 作用 | 设置指定异常的处理方案，功能等同于控制器方法，<br/>出现异常后终止原始控制器执行,并转入当前方法执行 |
 
-示例
+### 示例
 
 ```java
 @RestControllerAdvice
