@@ -277,6 +277,120 @@ public class TestChinese {
 - 如果一个字符串只包含英文字符或者ASCII字符，那么只用一个字节就可以表示所有字符；
 - 将`char[]`改为`byte[] + encoding flag field`
 
+### 枚举类
+
+#### 1. 概述
+
+- 枚举类型本质上也是一种类，只不过是**这个类的对象是有限的、固定的几个，不能让用户随意创建**
+
+#### 2. 枚举类的定义
+
+##### jdk5.0之前
+
+- 私有化类的构造器
+- 对象的实例变量在类中使用`private final`声明，并在构造器中初始化
+- 类内部创建枚举类的示例，声明为`public static final`，对外暴露这些常量对象
+
+```java
+public class Season {
+    private final String seasonName;
+    private final String seasonDesc;
+
+    private Season(String seasonName, String seasonDesc) {
+        this.seasonName = seasonName;
+        this.seasonDesc = seasonDesc;
+    }
+
+    public static final Season SPRING = new Season("春天", "春暖花开");
+    public static final Season SUMMER = new Season("夏天", "夏日炎炎");
+    public static final Season AUTUMN = new Season("秋天", "秋高气爽");
+    public static final Season WINTER = new Season("冬天", "白雪皑皑");
+
+    @Override
+    public String toString() {
+        return "Season{" +
+                "seasonName='" + seasonName + '\'' +
+                ", seasonDesc='" + seasonDesc + '\'' +
+                '}';
+    }
+}
+```
+
+##### jdk5之后
+
+- 列出的实例系统会自动添加`public static final`修饰；
+- 枚举类默认继承的是`java.lang.Enum`类，因此不能再继承其他的类型。
+
+```java
+public enum Season {
+    SPRING("春天", "春风又绿江南岸"),
+    SUMMER("夏天", "映日荷花别样红"),
+    AUTUMN("秋天", "秋水共长天一色"),
+    WINTER("冬天", "窗含西岭千秋雪");
+    private final String seasonName;
+    private final String seasonDesc;
+
+    private Season(String seasonName, String seasonDesc) {
+        this.seasonName = seasonName;
+        this.seasonDesc = seasonDesc;
+    }
+
+    public String getSeasonName() {
+        return seasonName;
+    }
+
+    public String getSeasonDesc() {
+        return seasonDesc;
+    }
+}
+```
+
+### 注解
+
+#### 1. 自定义注解
+
+以`@SuppressWarnings`为参照，进行定义即可，如
+
+```java
+public @interface MyAnnotation {
+    String[] value() default "hello";
+}
+```
+
+- 如果定义的注解含有抽象方法，那么使用时必须指定返回值，除非它有默认值。格式 是“方法名 = 返回值”，如果只有一个抽象方法需要赋值，且方法名为 value，可以省 略“value=”，所以如果注解只有一个抽象方法成员，建议使用方法名value。
+
+  ```java
+  public @interface Column {
+      String columnName();
+      String columnType();
+  }
+  ```
+
+#### 2. 元注解
+
+对现有的注解进行解释说明的注解
+
+##### @Target
+
+- 用于描述注解的适用范围
+- 可以通过枚举类型ElementType的10个常量对象来指定
+- TYPE、METHOD、CONSTRUCTOR、PACKAGE
+
+##### @Retention
+
+- 用于描述注解的生命周期
+- 可以通过枚举类型RententionPolicy的三个常量对象来指定
+- SOURCE、CLASS、RUNTIME
+- 唯有RUNTIME阶段才能被反射读取到
+
+##### @Documented
+
+- 表示这个注解应该被javadoc工具记录
+
+##### @Inherited
+
+- 允许子类继承父类中的注解
+
 ## 异常体系
 
 ### 1. 异常的体系结构

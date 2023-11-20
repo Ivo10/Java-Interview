@@ -4,13 +4,55 @@
 
 ### @Value
 
+| 名称 | @Value                                                   |
+| ---- | -------------------------------------------------------- |
+| 类型 | **属性注解**  或  方法注解（了解）                       |
+| 位置 | **属性定义上方**  或  标准set方法上方  或  类set方法上方 |
+| 作用 | 为  基本数据类型  或  字符串类型  属性设置值             |
+| 属性 | value（默认）：要注入的属性值                            |
+
+- 使用 `@Value` 注解来注入属性，所属的类通常需要是一个Spring管理的bean，使用`@Component`, `@Service`, `@Repository`, 或 `@Controller` 来标记这个类
+- 如果 `@Value` 注解用在非 Spring 管理的普通类上，这个注解不会自动生效
+
+```java
+@Component
+public class App {
+    @Value("${server.port}")
+    private Integer port;
+}
+```
+
 ### @ConfigurationProperties
+
+```java
+@Component
+@ConfigurationProperties(prefix = "server")
+public class App {
+    private Integer port;
+}
+```
 
 ## IOC/DI相关
 
 ### @AutoWired
 
 ### @Qualifier
+
+## AOP相关
+
+### @Aspect
+
+### @Pointcut
+
+### @Before
+
+### @After
+
+### @Around
+
+### @AfterReturning
+
+### @AfterThrowing
 
 ## 配置相关
 
