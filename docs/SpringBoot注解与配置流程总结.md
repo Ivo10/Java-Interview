@@ -41,6 +41,8 @@ Integer port;
 
 ### @RequestBody
 
+### @RequestParam
+
 ### @GetMapping、@PostMapping、@DeletMapping、@PutMapping
 
 ## lombok相关
