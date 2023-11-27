@@ -11,3 +11,8 @@ sky:
     bucket-name: web-sky-take-out-ivo10
     access-key-id: LTAI5tDMTqh6RcqSpr1MuAPk
     access-key-secret: TiYA5PUkJ7ytbwUKJvsAYiXYDI1r4p
+  redis:
+    host: localhost
+    port: 6379
+    password: xw20000826
+    database: 10
