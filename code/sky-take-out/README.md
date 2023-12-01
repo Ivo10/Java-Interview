@@ -112,4 +112,31 @@ Redis的通用命令是不分数据类型的，都可以使用的命令：
 
 - user包下和admin包下均有`ShopController`类（分别用于管理端和用户端查看店铺状态），如果直接启动则会出现重名的bean。
   - 解决办法：`ShopController`的`RestController`注解上给bean命名
-- 
+
+## day06
+
+### 1. HttpClient
+
+- 支持HTTP协议的客户端编程工具包（发送HTTP请求）
+- 发送请求步骤
+  - 创建HttpClient对象
+  - 创建Http请求对象
+  - 调用HttpClient的execute方法发送请求
+
+- 核心API
+  - HttpClient
+  - HttpClients
+  - CloseableHttpClient
+  - HttpGet
+  - HttpPost
+
+### 2. 微信小程序登录功能
+
+#### 2.1 登录流程时序
+
+<img src="../../assets/api-login.2fcc9f35.jpg"  />
+
+- 小程序端调用`wx.login()`，获得授权码`code`；
+- 小程序发送请求`wx.request()`并携带授权码`code`至后端服务，后端服务使用`appid+appsecret+code`调用微信接口服务（使用`HttpClient`）；
+- 微信接口服务返回`session_key`和`openid`，其中`openid`为微信用户的唯一标识；
+- 返回自定义登录状态，即返回`token`；
