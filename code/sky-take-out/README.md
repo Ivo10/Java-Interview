@@ -180,3 +180,9 @@ Redis的通用命令是不分数据类型的，都可以使用的命令：
 - 使用`shopping_cart`表存储购物车信息，其中有`dish_id`、`setmeal_id`、`number`、`user_id`等字段，一条记录表示购物车中的一条信息；
 - 本质上还是一个对`shopping_cart`表的CRUD操作，关键搞清其中逻辑即可；
   - 如：向购物车中添加菜品时，第一次添加需要`insert`，后面添加相同菜品，需要`update number+1`；
+
+## day08
+
+### 1. 地址簿模块功能
+
+- 
